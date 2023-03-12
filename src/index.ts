@@ -79,7 +79,7 @@ class Bridge {
         if (callbackTopic) topic = callbackTopic;
 
         await this.kafkaMessaging.producer.send({
-          topic: `goldcare.${topic}`,
+          topic: `${origin}.${topic}`,
           messages: [
             {
               value: JSON.stringify({
