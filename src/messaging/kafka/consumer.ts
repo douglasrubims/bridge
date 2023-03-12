@@ -1,17 +1,26 @@
-import { Kafka } from "kafkajs";
+import { Kafka, Consumer } from "kafkajs";
 
 class KafkaConsumer {
+  private consumer: Consumer;
+
   constructor(
     private readonly kafka: Kafka,
     private readonly groupId: string,
     private readonly topics: string[]
-  ) {}
+  ) {
+    this.consumer = this.kafka.consumer({
+      groupId: this.groupId,
+      allowAutoTopicCreation: true
+    });
+  }
 
   public async connect() {
-    const consumer = this.kafka.consumer({ groupId: this.groupId });
-    await consumer.connect();
-    await consumer.subscribe({ topics: this.topics });
-    return consumer;
+    await this.consumer.connect();
+    await this.consumer.subscribe({ topics: this.topics });
+  }
+
+  public getInstance() {
+    return this.consumer;
   }
 }
 

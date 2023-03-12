@@ -1,9 +1,9 @@
-import { Kafka } from "kafkajs";
+import { Kafka, Consumer, Producer } from "kafkajs";
 import { KafkaClient } from "./kafka";
 import { KafkaConsumer } from "./kafka/consumer";
 import { KafkaProducer } from "./kafka/producer";
 
-class Bridge {
+class KafkaMessaging {
   private kafkaConsumer: KafkaConsumer;
   private kafkaProducer: KafkaProducer;
 
@@ -20,13 +20,18 @@ class Bridge {
     this.kafkaProducer = new KafkaProducer(this.kafka);
   }
 
-  public get consumer(): KafkaConsumer {
-    return this.kafkaConsumer;
+  public async connect(): Promise<void> {
+    await this.consumer.connect();
+    await this.producer.connect();
   }
 
-  public get producer(): KafkaProducer {
-    return this.kafkaProducer;
+  public get consumer(): Consumer {
+    return this.kafkaConsumer.getInstance();
+  }
+
+  public get producer(): Producer {
+    return this.kafkaProducer.getInstance();
   }
 }
 
-export { KafkaClient, Bridge };
+export { KafkaClient, KafkaMessaging };

@@ -1,12 +1,18 @@
-import { Kafka } from "kafkajs";
+import { Kafka, Producer } from "kafkajs";
 
 class KafkaProducer {
-  constructor(private readonly kafka: Kafka) {}
+  private producer: Producer;
+
+  constructor(private readonly kafka: Kafka) {
+    this.producer = this.kafka.producer();
+  }
 
   public async connect() {
-    const producer = this.kafka.producer();
-    await producer.connect();
-    return producer;
+    await this.producer.connect();
+  }
+
+  public getInstance() {
+    return this.producer;
   }
 }
 
