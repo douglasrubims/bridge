@@ -8,6 +8,7 @@
   "license": "MIT",
   "private": false,
   "scripts": {
+    "postinstall": "npm run build",
     "build": "tsc",
     "format": "prettier '**/*.ts' --write",
     "test": "jest src/tests --runInBand",
