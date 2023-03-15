@@ -12,13 +12,9 @@ declare global {
   }
 }
 
-declare module "bridge" {
-  export {
-    BridgeRepository as Bridge,
-    Request as BridgeRequest,
-    Response as BridgeResponse,
-    Topics as BridgeTopics
-  };
-}
-
-export {};
+export {
+  BridgeRepository as Bridge,
+  Request as BridgeRequest,
+  Response as BridgeResponse,
+  Topics as BridgeTopics
+};
