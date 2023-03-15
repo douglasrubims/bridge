@@ -3,7 +3,7 @@ import {
   Response as ExpressResponse
 } from "express";
 
-import { Response } from "../../@types/response";
+import { Response } from "../../@types/infra/response";
 
 export interface CallbackProps<T extends ExpressRequest = any> {
   hash: string;

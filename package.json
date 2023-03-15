@@ -7,6 +7,7 @@
   "author": "Douglas Rubim <douglasrubims@gmail.com>",
   "license": "MIT",
   "private": false,
+  "types": "./src/@types/index.d.ts",
   "scripts": {
     "postinstall": "npm run build",
     "build": "tsc",

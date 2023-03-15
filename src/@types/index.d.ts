@@ -1,14 +1,24 @@
-import { Bridge } from "../";
-import * as Types from "./";
+import { BridgeRepository } from "./repositories/bridge";
+
+import { Request } from "./infra/request";
+import { Response } from "./infra/response";
+import { Topics } from "./infra/topics";
 
 declare global {
   namespace Express {
     interface Request {
-      bridge: Bridge;
+      bridge: BridgeRepository;
     }
   }
 }
 
 declare module "bridge" {
-  export { Bridge, Types };
+  export {
+    BridgeRepository as Bridge,
+    Request as BridgeRequest,
+    Response as BridgeResponse,
+    Topics as BridgeTopics
+  };
 }
+
+export {};

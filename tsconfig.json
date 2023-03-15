@@ -11,7 +11,7 @@
     "esModuleInterop": true,
     "resolveJsonModule": true
   },
-  "typeRoots": ["src/@types/custom.d.ts"],
+  "typeRoots": ["src/@types/index.d.ts"],
   "exclude": ["node_modules", "build"],
   "ts-node": {
     "swc": true,

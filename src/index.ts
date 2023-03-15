@@ -5,9 +5,11 @@ import {
 } from "express";
 import { v4 as uuidv4 } from "uuid";
 
-import { Request } from "./@types/request";
-import { Response } from "./@types/response";
-import { Topics } from "./@types/topics";
+import { BridgeRepository } from "./@types/repositories/bridge";
+
+import { Request } from "./@types/infra/request";
+import { Response } from "./@types/infra/response";
+import { Topics } from "./@types/infra/topics";
 
 import { CallbackStorage } from "./infra/http/callback-storage";
 
@@ -15,7 +17,7 @@ import { KafkaClient, KafkaMessaging } from "./infra/messaging";
 
 import { BaseValidator } from "./infra/validations/base";
 
-class Bridge {
+class Bridge implements BridgeRepository {
   private kafkaClient: KafkaClient;
   private kafkaMessaging: KafkaMessaging;
   private callbackStorage = new CallbackStorage();
@@ -120,7 +122,13 @@ class Bridge {
     }
   }
 
-  private async validatePayload(topic: string, payload: any) {
+  private async validatePayload(
+    topic: string,
+    payload: any
+  ): Promise<{
+    isValid: boolean;
+    errors: string[];
+  }> {
     const { validation } = this.topics[topic];
 
     const validator = new BaseValidator(validation);
@@ -159,7 +167,7 @@ class Bridge {
       response?: ExpressResponse
     ) => Promise<ExpressResponse | undefined>,
     callbackTopic?: string
-  ) {
+  ): Promise<void> {
     const hash = uuidv4();
 
     this.callbackStorage.add<Y>(
