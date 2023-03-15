@@ -1,6 +1,8 @@
+import { Response } from "./response";
+
 export interface Request<T = any> {
   hash: string;
-  payload: T;
+  payload: Response<T>;
   origin: string;
   callback?: boolean;
   callbackTopic?: string;
