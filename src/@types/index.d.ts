@@ -1,4 +1,5 @@
 import { Bridge } from "../";
+import * as Types from "./";
 
 declare global {
   namespace Express {
@@ -8,4 +9,6 @@ declare global {
   }
 }
 
-export {};
+declare module "bridge" {
+  export { Bridge, Types };
+}
