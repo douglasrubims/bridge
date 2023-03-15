@@ -1,4 +1,4 @@
-import { BridgeRepository } from "./repositories/bridge";
+import { Bridge } from "..";
 
 import { Request } from "./infra/request";
 import { Response } from "./infra/response";
@@ -7,13 +7,13 @@ import { Topics } from "./infra/topics";
 declare global {
   namespace Express {
     interface Request {
-      bridge: BridgeRepository;
+      bridge: Bridge;
     }
   }
 }
 
 export {
-  BridgeRepository as Bridge,
+  Bridge,
   Request as BridgeRequest,
   Response as BridgeResponse,
   Topics as BridgeTopics
