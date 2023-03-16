@@ -1,10 +1,10 @@
 import { Response } from "./response";
 
-export interface Topic {
+export interface UseCaseTopic {
   useCase: (payload: any) => Promise<Response>;
   validation: any;
 }
 
-export interface Topics {
-  [key: string]: Topic;
+export interface UseCaseTopics {
+  [key: string]: UseCaseTopic;
 }

@@ -9,7 +9,7 @@ import { BridgeRepository } from "./@types/repositories/bridge";
 
 import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
-import { Topics } from "./@types/infra/topics";
+import { UseCaseTopics } from "./@types/infra/topics";
 
 import { CallbackStorage } from "./infra/http/callback-storage";
 
@@ -35,7 +35,8 @@ class Bridge implements BridgeRepository {
       ssl: boolean;
     },
     private readonly groupId: string,
-    private readonly topics: Topics
+    private readonly subscribedTopics: string[],
+    private readonly useCaseTopics?: UseCaseTopics
   ) {
     this.kafkaClient = new KafkaClient(
       this.kafkaConfig.clientId,
@@ -49,7 +50,7 @@ class Bridge implements BridgeRepository {
     this.kafkaMessaging = new KafkaMessaging(
       kafka,
       this.groupId,
-      Object.keys(this.topics as object).map(topic => `${origin}.${topic}`)
+      this.subscribedTopics.map(topic => `${origin}.${topic}`)
     );
   }
 
@@ -78,11 +79,15 @@ class Bridge implements BridgeRepository {
   }
 
   private async process(topic: string, message: Request): Promise<void> {
+    if (!this.useCaseTopics) return;
+
     if (message.callback) await this.processCallback(topic, message);
     else await this.processRequest(topic, message);
   }
 
   private async processRequest(topic: string, message: Request): Promise<void> {
+    if (!this.useCaseTopics) return;
+
     const { hash, payload, origin, callback, callbackTopic } = message;
 
     const validation = await this.validatePayload(topic, payload);
@@ -90,12 +95,12 @@ class Bridge implements BridgeRepository {
     let response: Response = {
       success: false,
       message: "Invalid payload",
-      data: { errors: validation.errors }
+      data: { errors: validation?.errors }
     };
 
     try {
-      if (validation.isValid)
-        response = await this.topics[topic].useCase(payload);
+      if (validation?.isValid)
+        response = await this.useCaseTopics[topic].useCase(payload);
     } catch (error) {
       response = {
         success: false,
@@ -125,11 +130,16 @@ class Bridge implements BridgeRepository {
   private async validatePayload(
     topic: string,
     payload: any
-  ): Promise<{
-    isValid: boolean;
-    errors: string[];
-  }> {
-    const { validation } = this.topics[topic];
+  ): Promise<
+    | {
+        isValid: boolean;
+        errors: string[];
+      }
+    | undefined
+  > {
+    if (!this.useCaseTopics) return;
+
+    const { validation } = this.useCaseTopics[topic];
 
     const validator = new BaseValidator(validation);
 
