@@ -2,7 +2,7 @@ import { Bridge } from "..";
 
 import { Request } from "./infra/request";
 import { Response } from "./infra/response";
-import { Topics } from "./infra/topics";
+import { UseCaseTopics } from "./infra/topics";
 
 declare global {
   namespace Express {
@@ -16,5 +16,5 @@ export {
   Bridge,
   Request as BridgeRequest,
   Response as BridgeResponse,
-  Topics as BridgeTopics
+  UseCaseTopics as BridgeUseCaseTopics
 };
