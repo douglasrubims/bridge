@@ -153,6 +153,7 @@ class Bridge implements BridgeRepository {
     const { hash, payload, origin, callback, callbackTopic } = message;
 
     const record = this.callbackStorage.get(hash);
+
     if (!record) return;
 
     this.callbackStorage.remove(hash);
@@ -192,7 +193,7 @@ class Bridge implements BridgeRepository {
       hash,
       payload,
       origin: this.origin,
-      callback: true,
+      callback: false,
       callbackTopic
     };
 
