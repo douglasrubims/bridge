@@ -21,8 +21,10 @@ class KafkaMessaging {
   }
 
   public async connect(): Promise<void> {
-    await this.kafkaConsumer.connect();
-    await this.kafkaProducer.connect();
+    await Promise.all([
+      this.kafkaConsumer.connect(),
+      this.kafkaProducer.connect()
+    ]);
   }
 
   public get consumer(): Consumer {
