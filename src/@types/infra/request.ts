@@ -2,7 +2,7 @@ import { Response } from "./response";
 
 export interface Request<T = any> {
   hash: string;
-  payload: Response<T>;
+  payload: T | Response<T>;
   origin: string;
   callback?: boolean;
   callbackTopic?: string;

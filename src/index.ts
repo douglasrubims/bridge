@@ -158,7 +158,7 @@ class Bridge implements BridgeRepository {
 
   public async dispatch<T, Y>(
     topic: string,
-    payload: Response<T>,
+    payload: T | Response<T>,
     request?: ExpressRequest,
     response?: ExpressResponse,
     callback?: (
