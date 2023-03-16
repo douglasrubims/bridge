@@ -18,6 +18,7 @@ class KafkaMessaging {
       this.topics
     );
     this.kafkaProducer = new KafkaProducer(this.kafka);
+    console.log(1, this.topics);
   }
 
   public async connect(): Promise<void> {
