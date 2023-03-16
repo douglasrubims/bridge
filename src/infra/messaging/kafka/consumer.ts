@@ -15,7 +15,6 @@ class KafkaConsumer {
   }
 
   public async connect() {
-    console.log(2, this.topics);
     await this.consumer.connect();
     await this.consumer.subscribe({ topics: this.topics });
   }
