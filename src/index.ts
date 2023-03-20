@@ -172,6 +172,8 @@ class Bridge implements BridgeRepository {
 
     if (!record) return;
 
+    this.logger.log(`Received message from ${origin} on topic <${topic}>`);
+
     this.callbackStorage.remove(hash);
 
     if (!record.request || !record.response) return;
