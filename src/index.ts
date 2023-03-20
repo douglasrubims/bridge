@@ -11,6 +11,8 @@ import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
 import { UseCaseTopics } from "./@types/infra/topics";
 
+import { Logger } from "./shared/utils/logger";
+
 import { CallbackStorage } from "./infra/http/callback-storage";
 
 import { KafkaClient, KafkaMessaging } from "./infra/messaging";
@@ -18,6 +20,7 @@ import { KafkaClient, KafkaMessaging } from "./infra/messaging";
 import { BaseValidator } from "./infra/validations/base";
 
 class Bridge implements BridgeRepository {
+  private logger: Logger;
   private kafkaClient: KafkaClient;
   private kafkaMessaging: KafkaMessaging;
   private callbackStorage = new CallbackStorage();
@@ -38,6 +41,10 @@ class Bridge implements BridgeRepository {
     private readonly subscribedTopics: string[],
     private readonly useCaseTopics?: UseCaseTopics
   ) {
+    this.logger = new Logger(origin);
+
+    this.logger.log("Initializing bridge...");
+
     this.kafkaClient = new KafkaClient(
       this.kafkaConfig.clientId,
       this.kafkaConfig.brokers,
@@ -65,6 +72,8 @@ class Bridge implements BridgeRepository {
   }
 
   public async connect(): Promise<void> {
+    this.logger.log("Connecting to Kafka...");
+
     await this.kafkaMessaging.connect();
 
     await this.kafkaMessaging.consumer.run({
@@ -90,7 +99,7 @@ class Bridge implements BridgeRepository {
 
     const { hash, payload, origin, callback, callbackTopic } = message;
 
-    console.log(`[${this.origin}] Received message on topic <${topic}>`);
+    this.logger.log(`Received message on topic <${topic}>`);
 
     const validation = await this.validatePayload(topic, payload);
 
@@ -126,9 +135,7 @@ class Bridge implements BridgeRepository {
           ]
         });
 
-        console.log(
-          `[${this.origin}] Sent message to ${origin} on topic <${topic}>`
-        );
+        this.logger.log(`Sent message to ${origin} on topic <${topic}>`);
       }
     }
   }
@@ -211,8 +218,8 @@ class Bridge implements BridgeRepository {
     const microservice = topic.split(".")[0];
     const messageTopic = topic.split(".")[1];
 
-    console.log(
-      `[${this.origin}] Sent message to ${microservice} on topic <${
+    this.logger.log(
+      `Sent message to ${microservice} on topic <${
         callbackTopic ?? messageTopic
       }>`
     );
