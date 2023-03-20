@@ -39,7 +39,8 @@ class Bridge implements BridgeRepository {
     },
     private readonly groupId: string,
     private readonly subscribedTopics: string[],
-    private readonly useCaseTopics?: UseCaseTopics
+    private readonly useCaseTopics?: UseCaseTopics,
+    private readonly subscribedOrigin?: string
   ) {
     this.logger = new Logger(origin);
 
@@ -57,7 +58,9 @@ class Bridge implements BridgeRepository {
     this.kafkaMessaging = new KafkaMessaging(
       kafka,
       this.groupId,
-      this.subscribedTopics.map(topic => `${origin}.${topic}`)
+      this.subscribedTopics.map(
+        topic => `${subscribedOrigin ?? origin}.${topic}`
+      )
     );
   }
 
