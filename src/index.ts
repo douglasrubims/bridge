@@ -90,6 +90,8 @@ class Bridge implements BridgeRepository {
 
     const { hash, payload, origin, callback, callbackTopic } = message;
 
+    console.log(`[${this.origin}] Received message on topic <${topic}>`);
+
     const validation = await this.validatePayload(topic, payload);
 
     let response: Response = {
@@ -123,6 +125,10 @@ class Bridge implements BridgeRepository {
             }
           ]
         });
+
+        console.log(
+          `[${this.origin}] Sent message to ${origin} on topic <${topic}>`
+        );
       }
     }
   }
@@ -201,6 +207,15 @@ class Bridge implements BridgeRepository {
       topic,
       messages: [{ value: JSON.stringify(message) }]
     });
+
+    const microservice = topic.split(".")[0];
+    const messageTopic = topic.split(".")[1];
+
+    console.log(
+      `[${this.origin}] Sent message to ${microservice} on topic <${
+        callbackTopic ?? messageTopic
+      }>`
+    );
   }
 }
 
