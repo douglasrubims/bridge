@@ -124,6 +124,8 @@ class Bridge implements BridgeRepository {
       if (callback) {
         if (callbackTopic) topic = callbackTopic;
 
+        console.log(`${origin}.${topic}`);
+
         await this.kafkaMessaging.producer.send({
           topic: `${origin}.${topic}`,
           messages: [
