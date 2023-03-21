@@ -5,19 +5,20 @@ import {
 } from "express";
 import { v4 as uuidv4 } from "uuid";
 
+import { Logger } from "./@types/contracts/logger";
+
 import { BridgeRepository } from "./@types/repositories/bridge";
 
 import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
 import { UseCaseTopics } from "./@types/infra/topics";
 
-import { Logger } from "./shared/utils/logger";
-
 import { CallbackStorage } from "./infra/http/callback-storage";
 
 import { KafkaClient, KafkaMessaging } from "./infra/messaging";
 
 import { BaseValidator } from "./infra/validations/base";
+import { ConsoleLogger } from "./shared/utils/console-logger";
 
 class Bridge implements BridgeRepository {
   private logger: Logger;
@@ -42,7 +43,7 @@ class Bridge implements BridgeRepository {
     private readonly useCaseTopics?: UseCaseTopics,
     private readonly subscribedOrigin?: string
   ) {
-    this.logger = new Logger(origin);
+    this.logger = new ConsoleLogger(origin);
 
     this.logger.log("Initializing bridge...");
 
