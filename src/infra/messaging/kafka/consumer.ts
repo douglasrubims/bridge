@@ -16,7 +16,10 @@ class KafkaConsumer {
 
   public async connect() {
     await this.consumer.connect();
-    await this.consumer.subscribe({ topics: this.topics });
+    await this.consumer.subscribe({
+      topics: this.topics,
+      fromBeginning: false
+    });
   }
 
   public getInstance() {
