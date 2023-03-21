@@ -211,7 +211,7 @@ class Bridge implements BridgeRepository {
       hash,
       payload,
       origin: this.origin,
-      callback: false,
+      callback: true,
       callbackTopic
     };
 
