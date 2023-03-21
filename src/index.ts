@@ -85,14 +85,13 @@ class Bridge implements BridgeRepository {
 
         topic = topic.split(".")[1];
 
+        console.log(message.value.toString());
         await this.process(topic, JSON.parse(message.value.toString()));
       }
     });
   }
 
   private async process(topic: string, message: Request): Promise<void> {
-    if (!this.useCaseTopics) return;
-
     if (message.callback) await this.processRequest(topic, message);
     else await this.processCallback(topic, message);
   }
@@ -123,8 +122,6 @@ class Bridge implements BridgeRepository {
     } finally {
       if (callback) {
         if (callbackTopic) topic = callbackTopic;
-
-        console.log(`${origin}.${topic}`);
 
         await this.kafkaMessaging.producer.send({
           topic: `${origin}.${topic}`,
@@ -209,12 +206,6 @@ class Bridge implements BridgeRepository {
       callbackTopic
     );
 
-    console.log(
-      this.subscribedOrigin,
-      this.origin,
-      this.subscribedOrigin ?? this.origin
-    );
-
     const message: Request<T> = {
       hash,
       payload,
@@ -227,6 +218,8 @@ class Bridge implements BridgeRepository {
       topic,
       messages: [{ value: JSON.stringify(message) }]
     });
+
+    console.log(JSON.stringify(message));
 
     const microservice = topic.split(".")[0];
     const messageTopic = topic.split(".")[1];
