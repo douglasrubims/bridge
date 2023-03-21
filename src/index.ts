@@ -85,7 +85,6 @@ class Bridge implements BridgeRepository {
 
         topic = topic.split(".")[1];
 
-        console.log(message.value.toString());
         await this.process(topic, JSON.parse(message.value.toString()));
       }
     });
@@ -218,8 +217,6 @@ class Bridge implements BridgeRepository {
       topic,
       messages: [{ value: JSON.stringify(message) }]
     });
-
-    console.log(JSON.stringify(message));
 
     const microservice = topic.split(".")[0];
     const messageTopic = topic.split(".")[1];
