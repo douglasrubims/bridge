@@ -210,7 +210,7 @@ class Bridge implements BridgeRepository {
     const message: Request<T> = {
       hash,
       payload,
-      origin: this.origin,
+      origin: this.subscribedOrigin ?? this.origin,
       callback: !!(request && response),
       callbackTopic
     };
