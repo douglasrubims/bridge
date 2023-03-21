@@ -209,6 +209,12 @@ class Bridge implements BridgeRepository {
       callbackTopic
     );
 
+    console.log(
+      this.subscribedOrigin,
+      this.origin,
+      this.subscribedOrigin ?? this.origin
+    );
+
     const message: Request<T> = {
       hash,
       payload,
