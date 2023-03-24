@@ -7,11 +7,6 @@ import {
 import { Response } from "../infra/response";
 
 export interface BridgeRepository {
-  middleware(
-    req: ExpressRequest,
-    _res: ExpressResponse,
-    next: ExpressNextFunction
-  ): Promise<void>;
   dispatch<T, Y>(
     topic: string,
     payload: Response<T>,

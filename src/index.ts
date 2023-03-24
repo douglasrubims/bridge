@@ -65,16 +65,6 @@ class Bridge implements BridgeRepository {
     );
   }
 
-  public async middleware(
-    req: ExpressRequest,
-    _res: ExpressResponse,
-    next: ExpressNextFunction
-  ): Promise<void> {
-    req.bridge = this;
-
-    next();
-  }
-
   public async connect(): Promise<void> {
     this.logger.log("Connecting to Kafka...");
 
