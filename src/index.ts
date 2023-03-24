@@ -11,7 +11,7 @@ import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
 import { UseCaseTopics } from "./@types/infra/topics";
 
-import { Logger } from "./shared/utils/logger";
+import { Logger, LogLevel } from "./shared/utils/logger";
 
 import { CallbackStorage } from "./infra/http/callback-storage";
 
@@ -39,10 +39,11 @@ class Bridge implements BridgeRepository {
     },
     private readonly groupId: string,
     private readonly subscribedTopics: string[],
+    private readonly logLevel: LogLevel,
     private readonly useCaseTopics?: UseCaseTopics,
     private readonly subscribedOrigin?: string
   ) {
-    this.logger = new Logger(origin);
+    this.logger = new Logger(origin, logLevel);
 
     this.logger.log("Initializing bridge...");
 
@@ -84,6 +85,11 @@ class Bridge implements BridgeRepository {
         if (!message.value) return;
 
         topic = topic.split(".")[1];
+
+        this.logger.log(
+          `Received Message on topic <${topic}>: ${message.value.toString()}`,
+          LogLevel.DEBUG
+        );
 
         await this.process(topic, JSON.parse(message.value.toString()));
       }
@@ -137,6 +143,7 @@ class Bridge implements BridgeRepository {
         });
 
         this.logger.log(`Sent message to ${origin} on topic <${topic}>`);
+        this.logger.log(`Message: ${JSON.stringify(response)}`, LogLevel.DEBUG);
       }
     }
   }
@@ -226,6 +233,7 @@ class Bridge implements BridgeRepository {
         callbackTopic ?? messageTopic
       }>`
     );
+    this.logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
   }
 }
 
