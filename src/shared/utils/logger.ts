@@ -1,6 +1,6 @@
 export enum LogLevel {
-  INFO,
-  DEBUG
+  INFO = 0,
+  DEBUG = 1
 }
 
 class Logger {
