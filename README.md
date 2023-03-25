@@ -1,6 +1,6 @@
 # Bridge
 
-Bridge is a communication interface between microservices with kafkajs and express.js.
+Bridge is a communication interface between microservices with kafkajs with promise support.
 
 ## Install
 
@@ -53,13 +53,9 @@ class App {
     );
 
     // Send messages
-    this.bridge.dispatch(
+    const response = this.bridge.dispatch(
       "destiny.hello-world", // microservice.topic
       { helloworld: "Hello world!" } // your payload
-      // request, // required to callback function with express.js (optional)
-      // response, // required to callback function with express.js (optional)
-      // callback, // execute on receive a callback response on `origin.topic` -> (payload, req, res) => Promise<void> (optional)
-      // "callback-topic" // topic that will send callback (optional)
     );
   }
 }

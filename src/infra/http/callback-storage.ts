@@ -1,37 +1,13 @@
-import {
-  Request as ExpressRequest,
-  Response as ExpressResponse
-} from "express";
-
-import { Response } from "../../@types/infra/response";
-
-export interface CallbackProps<T extends ExpressRequest = any> {
+export interface CallbackProps {
   hash: string;
-  request?: ExpressRequest;
-  response?: ExpressResponse;
-  callback?: (
-    payload: Response,
-    request: T,
-    response: ExpressResponse
-  ) => Promise<ExpressResponse | undefined>;
-  callbackTopic?: string;
+  resolve: (value: unknown) => void;
 }
 
 class CallbackStorage {
   private requests: CallbackProps[] = [];
 
-  add<T>(
-    hash: string,
-    request?: ExpressRequest,
-    response?: ExpressResponse,
-    callback?: (
-      payload: Response,
-      request?: T,
-      response?: ExpressResponse
-    ) => Promise<ExpressResponse | undefined>,
-    callbackTopic?: string
-  ) {
-    this.requests.push({ hash, request, response, callback, callbackTopic });
+  add(hash: string, resolve: (value: unknown) => void) {
+    this.requests.push({ hash, resolve });
   }
 
   get(hash: string) {

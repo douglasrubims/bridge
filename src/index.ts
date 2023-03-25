@@ -1,8 +1,3 @@
-import {
-  Request as ExpressRequest,
-  Response as ExpressResponse,
-  NextFunction as ExpressNextFunction
-} from "express";
 import { v4 as uuidv4 } from "uuid";
 
 import { BridgeRepository } from "./@types/repositories/bridge";
@@ -88,7 +83,7 @@ class Bridge implements BridgeRepository {
 
   private async process(topic: string, message: Request): Promise<void> {
     if (message.callback) await this.processRequest(topic, message);
-    else await this.processCallback(topic, message);
+    else this.processCallback(topic, message);
   }
 
   private async processRequest(topic: string, message: Request): Promise<void> {
@@ -157,10 +152,7 @@ class Bridge implements BridgeRepository {
     return await validator.validate(payload);
   }
 
-  private async processCallback(
-    topic: string,
-    message: Request
-  ): Promise<ExpressResponse | undefined> {
+  private processCallback(topic: string, message: Request): void {
     const { hash, payload, origin } = message;
 
     const record = this.callbackStorage.get(hash);
@@ -171,59 +163,48 @@ class Bridge implements BridgeRepository {
 
     this.callbackStorage.remove(hash);
 
-    if (!record.request || !record.response) return;
-
-    if (!record.callback) return record.response.json(payload);
-
-    if (!payload.success) return record.response.status(500).json(payload);
-
-    return await record.callback(payload, record.request, record.response);
+    record.resolve(payload);
   }
 
-  public async dispatch<T, Y>(
+  public async dispatch<T>(
     topic: string,
-    payload: T | Response<T>,
-    request?: ExpressRequest,
-    response?: ExpressResponse,
-    callback?: (
-      payload: Response,
-      request?: Y,
-      response?: ExpressResponse
-    ) => Promise<ExpressResponse | undefined>,
-    callbackTopic?: string
-  ): Promise<void> {
-    const hash = uuidv4();
+    payload: T | Response<T>
+  ): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      try {
+        const hash = uuidv4();
 
-    this.callbackStorage.add<Y>(
-      hash,
-      request,
-      response,
-      callback,
-      callbackTopic
-    );
+        this.callbackStorage.add(hash, resolve);
 
-    const message: Request<T> = {
-      hash,
-      payload,
-      origin: this.subscribedOrigin ?? this.origin,
-      callback: !!(request && response),
-      callbackTopic
-    };
+        const message: Request<T> = {
+          hash,
+          payload,
+          origin: this.subscribedOrigin ?? this.origin,
+          callback: true
+        };
 
-    this.kafkaMessaging.producer.send({
-      topic,
-      messages: [{ value: JSON.stringify(message) }]
+        this.kafkaMessaging.producer.send({
+          topic,
+          messages: [{ value: JSON.stringify(message) }]
+        });
+
+        const microservice = topic.split(".")[0];
+        const messageTopic = topic.split(".")[1];
+
+        this.logger.log(
+          `Sent message to ${microservice} on topic <${messageTopic}>`
+        );
+        this.logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
+      } catch (error) {
+        this.logger.log(
+          `Error while sending message to ${topic}: ${
+            (error as Error).message
+          }`,
+          LogLevel.INFO
+        );
+        reject(error);
+      }
     });
-
-    const microservice = topic.split(".")[0];
-    const messageTopic = topic.split(".")[1];
-
-    this.logger.log(
-      `Sent message to ${microservice} on topic <${
-        callbackTopic ?? messageTopic
-      }>`
-    );
-    this.logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
   }
 }
 
