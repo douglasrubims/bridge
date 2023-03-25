@@ -53,7 +53,7 @@ class App {
     );
 
     // Send messages
-    const response = this.bridge.dispatch(
+    const response = await this.bridge.dispatch(
       "destiny.hello-world", // microservice.topic
       { helloworld: "Hello world!" } // your payload
     );
