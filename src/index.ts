@@ -43,7 +43,7 @@ class Bridge implements BridgeRepository {
     private readonly useCaseTopics?: UseCaseTopics,
     private readonly subscribedOrigin?: string
   ) {
-    this.logger = new Logger(origin, logLevel);
+    this.logger = new Logger(origin, this.logLevel);
 
     this.logger.log("Initializing bridge...");
 
@@ -161,7 +161,7 @@ class Bridge implements BridgeRepository {
     topic: string,
     message: Request
   ): Promise<ExpressResponse | undefined> {
-    const { hash, payload, origin, callback, callbackTopic } = message;
+    const { hash, payload, origin } = message;
 
     const record = this.callbackStorage.get(hash);
 
