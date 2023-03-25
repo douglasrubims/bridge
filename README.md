@@ -4,7 +4,7 @@ Bridge is a communication interface between microservices with kafkajs and expre
 
 ## Install
 
-Command: `npm i https://github.com/douglasrubims/Bridge` or `yarn add https://github.com/douglasrubims/Bridge`
+Command: `npm i douglasrubims/bridge` or `yarn add douglasrubims/bridge`
 
 ## Example
 
