@@ -1,9 +1,9 @@
 import { Response } from "../infra/response";
 
 export interface BridgeRepository {
-  dispatch<T>(
+  dispatch<T, Y>(
     topic: string,
-    payload: T | Response<T>,
+    payload: T,
     callback: boolean
-  ): Promise<unknown>;
+  ): Promise<Response<Y>>;
 }

@@ -166,15 +166,12 @@ class Bridge implements BridgeRepository {
     record.resolve(payload);
   }
 
-  public async dispatch<T>(
-    topic: string,
-    payload: T | Response<T>
-  ): Promise<unknown> {
+  public async dispatch<T, Y>(topic: string, payload: T): Promise<Response<Y>> {
     return new Promise((resolve, reject) => {
       try {
         const hash = uuidv4();
 
-        this.callbackStorage.add(hash, resolve);
+        this.callbackStorage.add<Y>(hash, resolve);
 
         const message: Request<T> = {
           hash,

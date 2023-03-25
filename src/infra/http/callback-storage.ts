@@ -1,12 +1,17 @@
+import { Response } from "../../@types/infra/response";
+
 export interface CallbackProps {
   hash: string;
-  resolve: (value: unknown) => void;
+  resolve: (value: Response<any> | PromiseLike<Response<any>>) => void;
 }
 
 class CallbackStorage {
   private requests: CallbackProps[] = [];
 
-  add(hash: string, resolve: (value: unknown) => void) {
+  add<T>(
+    hash: string,
+    resolve: (value: Response<T> | PromiseLike<Response<T>>) => void
+  ) {
     this.requests.push({ hash, resolve });
   }
 
