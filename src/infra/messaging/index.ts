@@ -20,6 +20,26 @@ class KafkaMessaging {
     this.kafkaProducer = new KafkaProducer(this.kafka);
   }
 
+  public async syncTopics(): Promise<void> {
+    const topics = await this.kafka.admin().listTopics();
+
+    const topicsToCreate = this.topics.filter(topic => !topics.includes(topic));
+
+    await this.kafka.admin().createTopics({
+      topics: topicsToCreate.map(topic => ({
+        topic,
+        numPartitions: 1,
+        replicationFactor: 1,
+        configEntries: [
+          {
+            name: "cleanup.policy",
+            value: "delete"
+          }
+        ]
+      }))
+    });
+  }
+
   public async connect(): Promise<void> {
     await Promise.all([
       this.kafkaConsumer.connect(),
