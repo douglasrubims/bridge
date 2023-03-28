@@ -63,7 +63,7 @@ class Bridge implements BridgeRepository {
   public async connect(): Promise<void> {
     this.logger.log("Syncing topics...");
 
-    this.kafkaMessaging.syncTopics();
+    await this.kafkaMessaging.syncTopics();
 
     this.logger.log("Connecting to Kafka...");
 
