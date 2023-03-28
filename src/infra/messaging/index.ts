@@ -25,6 +25,8 @@ class KafkaMessaging {
 
     const topicsToCreate = this.topics.filter(topic => !topics.includes(topic));
 
+    if (!topicsToCreate.length) return;
+
     await this.kafka.admin().createTopics({
       topics: topicsToCreate.map(topic => ({
         topic,
