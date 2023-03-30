@@ -12,7 +12,7 @@ Command: `npm i douglasrubims/bridge` or `yarn add douglasrubims/bridge`
 import { Bridge, UseCaseTopics } from "bridge";
 
 // Received messages will come to use case function automatically
-const TOPICS: UseCaseTopics = {
+const businessRules: UseCaseTopics = {
   "microservice.topic-name": {
     useCase: yourFunctionHere,
     validation: yourJoiSchemaHere
@@ -33,14 +33,11 @@ class App {
       ssl: true
     };
 
-    const microservices = Object.keys(TOPICS);
+    const topics = Object.keys(businessRules);
 
-    const topics = microservices.reduce(
-      (acc: string[], microservice: string) => {
-        return [...acc, ...TOPICS[microservice]];
-      },
-      []
-    );
+    const topics = topics.reduce((acc: string[], microservice: string) => {
+      return [...acc, ...businessRules[microservice]];
+    }, []);
 
     this.bridge = new Bridge(
       "microservice-name", // origin
