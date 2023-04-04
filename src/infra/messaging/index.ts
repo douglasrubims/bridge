@@ -32,8 +32,8 @@ class KafkaMessaging {
     await this.kafka.admin().createTopics({
       topics: topicsToCreate.map(topic => ({
         topic,
-        numPartitions: 1,
-        replicationFactor: 1,
+        numPartitions: -1,
+        replicationFactor: -1,
         configEntries: [
           {
             name: "cleanup.policy",
