@@ -1,4 +1,4 @@
-import { Kafka } from "kafkajs";
+import { Kafka, KafkaConfig } from "kafkajs";
 
 class KafkaClient {
   private kafka: Kafka;
@@ -6,19 +6,22 @@ class KafkaClient {
   constructor(
     private readonly clientId: string,
     private readonly brokers: string[],
-    private readonly sasl: {
+    private readonly ssl: boolean,
+    private readonly sasl?: {
       mechanism: "scram-sha-512";
       username: string;
       password: string;
-    },
-    private readonly ssl: boolean
+    }
   ) {
-    this.kafka = new Kafka({
+    const options: KafkaConfig = {
       clientId: this.clientId,
       brokers: this.brokers,
-      sasl: this.sasl,
       ssl: this.ssl
-    });
+    };
+
+    if (this.sasl) options.sasl = this.sasl;
+
+    this.kafka = new Kafka(options);
   }
 
   public getInstance() {

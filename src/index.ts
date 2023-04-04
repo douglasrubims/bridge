@@ -25,7 +25,7 @@ class Bridge implements BridgeRepository {
     private readonly kafkaConfig: {
       clientId: string;
       brokers: string[];
-      sasl: {
+      sasl?: {
         mechanism: "scram-sha-512";
         username: string;
         password: string;
@@ -45,8 +45,8 @@ class Bridge implements BridgeRepository {
     this.kafkaClient = new KafkaClient(
       this.kafkaConfig.clientId,
       this.kafkaConfig.brokers,
-      this.kafkaConfig.sasl,
-      this.kafkaConfig.ssl
+      this.kafkaConfig.ssl,
+      this.kafkaConfig.sasl
     );
 
     const kafka = this.kafkaClient.getInstance();
