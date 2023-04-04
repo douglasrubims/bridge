@@ -30,7 +30,7 @@ class Bridge implements BridgeRepository {
         username: string;
         password: string;
       };
-      ssl: boolean;
+      ssl?: boolean;
     },
     private readonly groupId: string,
     private readonly subscribedTopics: string[],
@@ -45,8 +45,8 @@ class Bridge implements BridgeRepository {
     this.kafkaClient = new KafkaClient(
       this.kafkaConfig.clientId,
       this.kafkaConfig.brokers,
-      this.kafkaConfig.ssl,
-      this.kafkaConfig.sasl
+      this.kafkaConfig.sasl,
+      this.kafkaConfig.ssl
     );
 
     const kafka = this.kafkaClient.getInstance();
