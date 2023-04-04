@@ -21,6 +21,8 @@ class KafkaMessaging {
   }
 
   public async syncTopics(): Promise<void> {
+    await this.kafka.admin().connect();
+
     const topics = await this.kafka.admin().listTopics();
 
     const topicsToCreate = this.topics.filter(topic => !topics.includes(topic));
@@ -40,6 +42,8 @@ class KafkaMessaging {
         ]
       }))
     });
+
+    await this.kafka.admin().disconnect();
   }
 
   public async connect(): Promise<void> {
