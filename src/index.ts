@@ -111,7 +111,7 @@ class Bridge implements BridgeRepository {
     } catch (error) {
       response = {
         success: false,
-        message: (error as Error).message || "Unknown error"
+        message: (error as Error).message || String(error) || "Unknown error"
       };
     } finally {
       if (callback) {
@@ -199,7 +199,7 @@ class Bridge implements BridgeRepository {
       } catch (error) {
         this.logger.log(
           `Error while sending message to ${topic}: ${
-            (error as Error).message
+            (error as Error).message ?? String(error)
           }`,
           LogLevel.INFO
         );
