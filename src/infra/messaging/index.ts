@@ -29,27 +29,22 @@ class KafkaMessaging {
 
     if (!topicsToCreate.length) return;
 
-    await this.kafka.admin().createTopics({
-      topics: topicsToCreate.map(topic => ({
-        topic,
-        numPartitions: -1,
-        replicationFactor: -1,
-        configEntries: [
-          {
-            name: "cleanup.policy",
-            value: "delete"
-          }
-        ]
-      }))
-    });
-
-    await Promise.all(
-      topics.map(topic =>
-        this.kafka
-          .admin()
-          .resetOffsets({ groupId: this.groupId, topic, earliest: false })
-      )
-    );
+    await Promise.all([
+      this.kafka.admin().createTopics({
+        topics: topicsToCreate.map(topic => ({
+          topic,
+          numPartitions: -1,
+          replicationFactor: -1,
+          configEntries: [
+            {
+              name: "cleanup.policy",
+              value: "delete"
+            }
+          ]
+        }))
+      }),
+      this.kafka.admin().deleteGroups([this.groupId])
+    ]);
 
     await this.kafka.admin().disconnect();
   }
