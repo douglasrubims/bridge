@@ -36,6 +36,7 @@ class Bridge implements BridgeRepository {
     private readonly subscribedTopics: string[],
     private readonly logLevel: LogLevel,
     private readonly useCaseTopics?: UseCaseTopics,
+    private readonly groupIdsToReset?: string[],
     private readonly subscribedOrigin?: string
   ) {
     this.logger = new Logger(origin, this.logLevel);
@@ -56,7 +57,8 @@ class Bridge implements BridgeRepository {
       this.groupId,
       this.subscribedTopics.map(
         topic => `${subscribedOrigin ?? origin}.${topic}`
-      )
+      ),
+      this.groupIdsToReset
     );
   }
 

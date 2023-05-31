@@ -10,7 +10,8 @@ class KafkaMessaging {
   constructor(
     private readonly kafka: Kafka,
     private readonly groupId: string,
-    private readonly topics: string[]
+    private readonly topics: string[],
+    private readonly groupIdsToReset: string[] = []
   ) {
     this.kafkaConsumer = new KafkaConsumer(
       this.kafka,
@@ -43,7 +44,7 @@ class KafkaMessaging {
           ]
         }))
       }),
-      this.kafka.admin().deleteGroups([this.groupId])
+      this.kafka.admin().deleteGroups(this.groupIdsToReset)
     ]);
 
     await this.kafka.admin().disconnect();
