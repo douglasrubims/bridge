@@ -43,6 +43,14 @@ class KafkaMessaging {
       }))
     });
 
+    await Promise.all(
+      topics.map(topic =>
+        this.kafka
+          .admin()
+          .resetOffsets({ groupId: this.groupId, topic, earliest: false })
+      )
+    );
+
     await this.kafka.admin().disconnect();
   }
 
