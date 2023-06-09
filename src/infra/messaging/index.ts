@@ -67,10 +67,10 @@ class KafkaMessaging {
       });
     }
 
-    const topicsToCreate = this.topics.filter(
+    const topicsToCreate = this.subscribedTopics.filter(
       topic =>
         !topicsMetadata.topics.find(
-          topicMetadata => topicMetadata.name === topic
+          topicMetadata => topicMetadata.name === `${this.origin}.${topic.name}`
         )
     );
 
@@ -78,25 +78,17 @@ class KafkaMessaging {
       this.logger.log(`Creating topics: ${topicsToCreate.join(", ")}`);
 
       await this.kafka.admin().createTopics({
-        topics: topicsToCreate.map(topic => {
-          const numPartitions = findTopic(topic)?.numPartitions;
-
-          this.logger.log(
-            `Creating topic ${topic} with ${numPartitions} partitions`
-          );
-
-          return {
-            topic,
-            numPartitions: numPartitions ?? -1,
-            replicationFactor: -1,
-            configEntries: [
-              {
-                name: "cleanup.policy",
-                value: "delete"
-              }
-            ]
-          };
-        })
+        topics: topicsToCreate.map(topic => ({
+          topic: topic.name,
+          numPartitions: topic.numPartitions ?? -1,
+          replicationFactor: -1,
+          configEntries: [
+            {
+              name: "cleanup.policy",
+              value: "delete"
+            }
+          ]
+        }))
       });
     }
 
