@@ -1,23 +1,34 @@
-export enum LogLevel {
+enum LogLevel {
   INFO = 0,
   DEBUG = 1
 }
 
 class Logger {
-  constructor(private readonly origin: string, private logLevel?: LogLevel) {
-    this.origin = origin[0].toUpperCase() + origin.slice(1).toLowerCase();
+  private static instance: Logger;
+
+  private constructor(private origin?: string, private logLevel?: LogLevel) {
+    this.setOrigin(origin);
   }
 
-  setLogLevel(logLevel: LogLevel): void {
+  public static getInstance(): Logger {
+    if (!Logger.instance) Logger.instance = new Logger();
+
+    return Logger.instance;
+  }
+
+  public setOrigin(origin?: string): void {
+    if (origin)
+      this.origin = origin[0].toUpperCase() + origin.slice(1).toLowerCase();
+  }
+
+  public setLogLevel(logLevel: LogLevel): void {
     this.logLevel = logLevel;
   }
 
-  log(message: string, logLevel: LogLevel = LogLevel.INFO): void {
+  public log(message: string, logLevel: LogLevel = LogLevel.INFO): void {
     if (this.logLevel ?? 0 >= logLevel)
       console.log(`[${this.origin}] ${message}`);
   }
 }
 
-const logger = new Logger("logger");
-
-export { logger };
+export { Logger, LogLevel };

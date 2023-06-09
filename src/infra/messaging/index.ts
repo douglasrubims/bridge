@@ -6,11 +6,12 @@ import { KafkaProducer } from "./kafka/producer";
 
 import { SubscribedTopic } from "../../@types/infra/topics";
 
-import { logger } from "../logs/logger";
+import { Logger } from "../logs/logger";
 
 class KafkaMessaging {
   private kafkaConsumer: KafkaConsumer;
   private kafkaProducer: KafkaProducer;
+  private logger = Logger.getInstance();
   private topics: string[] = [];
 
   constructor(
@@ -55,7 +56,7 @@ class KafkaMessaging {
     });
 
     if (topicsToModify.length) {
-      logger.log(
+      this.logger.log(
         `Modifying partitions for topics: ${topicsToModify
           .map(topicMetadata => topicMetadata.name)
           .join(", ")}`
@@ -75,7 +76,7 @@ class KafkaMessaging {
     }
 
     if (topicsToCreate.length) {
-      logger.log(`Creating topics: ${topicsToCreate.join(", ")}`);
+      this.logger.log(`Creating topics: ${topicsToCreate.join(", ")}`);
 
       await this.kafka.admin().createTopics({
         topics: topicsToCreate.map(topic => {
