@@ -5,14 +5,13 @@ enum LogLevel {
 
 class Logger {
   private static instance: Logger;
+  private origin?: string;
+  private logLevel?: LogLevel;
 
-  private constructor(private origin?: string, private logLevel?: LogLevel) {
-    this.setOrigin(origin);
-  }
+  private constructor() {}
 
   public static getInstance(): Logger {
     if (!Logger.instance) Logger.instance = new Logger();
-
     return Logger.instance;
   }
 
