@@ -38,17 +38,6 @@ class KafkaMessaging {
 
     const topicsMetadata = await this.kafka.admin().fetchTopicMetadata();
 
-    this.logger.log(
-      `Topics metadata: ${JSON.stringify(topicsMetadata.topics, null, 2)}`
-    );
-
-    const topicsToCreate = this.topics.filter(
-      topic =>
-        !topicsMetadata.topics.find(
-          topicMetadata => topicMetadata.name === topic
-        )
-    );
-
     const topicsToModify = topicsMetadata.topics.filter(topicMetadata => {
       const numPartitions = this.subscribedTopics.find(
         subscribedTopic => subscribedTopic.name === topicMetadata.name
@@ -58,6 +47,12 @@ class KafkaMessaging {
 
       return topicMetadata.partitions.length < numPartitions;
     });
+
+    this.logger.log(
+      `Topics to modify: ${topicsToModify
+        .map(topicMetadata => topicMetadata.name)
+        .join(", ")}`
+    );
 
     if (topicsToModify.length) {
       this.logger.log(
@@ -78,6 +73,13 @@ class KafkaMessaging {
         }))
       });
     }
+
+    const topicsToCreate = this.topics.filter(
+      topic =>
+        !topicsMetadata.topics.find(
+          topicMetadata => topicMetadata.name === topic
+        )
+    );
 
     if (topicsToCreate.length) {
       this.logger.log(`Creating topics: ${topicsToCreate.join(", ")}`);
