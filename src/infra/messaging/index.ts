@@ -74,7 +74,9 @@ class KafkaMessaging {
       });
     }
 
-    if (topicsToCreate.length)
+    if (topicsToCreate.length) {
+      logger.log(`Creating topics: ${topicsToCreate.join(", ")}`);
+
       await this.kafka.admin().createTopics({
         topics: topicsToCreate.map(topic => {
           const numPartitions = this.subscribedTopics.find(
@@ -94,6 +96,7 @@ class KafkaMessaging {
           };
         })
       });
+    }
 
     await this.kafka.admin().disconnect();
   }

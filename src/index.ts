@@ -198,9 +198,9 @@ class Bridge implements BridgeRepository {
         logger.log(
           `Error while sending message to ${topic}: ${
             (error as Error).message ?? String(error)
-          }`,
-          LogLevel.INFO
+          }`
         );
+
         reject(error);
       }
     });
