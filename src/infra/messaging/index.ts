@@ -1,51 +1,90 @@
 import { Kafka, Consumer, Producer } from "kafkajs";
+
 import { KafkaClient } from "./kafka";
 import { KafkaConsumer } from "./kafka/consumer";
 import { KafkaProducer } from "./kafka/producer";
 
+import { SubscribedTopic } from "../../@types/infra/topics";
+
 class KafkaMessaging {
   private kafkaConsumer: KafkaConsumer;
   private kafkaProducer: KafkaProducer;
+  private topics: string[] = [];
 
   constructor(
     private readonly kafka: Kafka,
     private readonly groupId: string,
-    private readonly topics: string[],
-    private readonly groupIdsToReset: string[] = []
+    private readonly origin: string,
+    private readonly subscribedTopics: SubscribedTopic[]
   ) {
+    this.topics = this.subscribedTopics.map(
+      topic => `${this.origin}.${topic.name}`
+    );
+
     this.kafkaConsumer = new KafkaConsumer(
       this.kafka,
       this.groupId,
       this.topics
     );
+
     this.kafkaProducer = new KafkaProducer(this.kafka);
   }
 
   public async syncTopics(): Promise<void> {
     await this.kafka.admin().connect();
 
-    const topics = await this.kafka.admin().listTopics();
+    const topicsMetadata = await this.kafka.admin().fetchTopicMetadata();
 
-    const topicsToCreate = this.topics.filter(topic => !topics.includes(topic));
+    const topicsToCreate = this.topics.filter(
+      topic =>
+        !topicsMetadata.topics.find(
+          topicMetadata => topicMetadata.name === topic
+        )
+    );
 
-    if (!topicsToCreate.length) return;
+    const topicsToModify = topicsMetadata.topics.filter(topicMetadata => {
+      const numPartitions = this.subscribedTopics.find(
+        subscribedTopic => subscribedTopic.name === topicMetadata.name
+      )?.numPartitions;
 
-    await Promise.all([
-      this.kafka.admin().createTopics({
-        topics: topicsToCreate.map(topic => ({
-          topic,
-          numPartitions: -1,
-          replicationFactor: -1,
-          configEntries: [
-            {
-              name: "cleanup.policy",
-              value: "delete"
-            }
-          ]
+      if (!numPartitions) return false;
+
+      return topicMetadata.partitions.length < numPartitions;
+    });
+
+    if (topicsToModify.length)
+      await this.kafka.admin().createPartitions({
+        validateOnly: false,
+        timeout: 5000,
+        topicPartitions: topicsToModify.map(topicMetadata => ({
+          topic: topicMetadata.name,
+          count:
+            this.subscribedTopics.find(
+              subscribedTopic => subscribedTopic.name === topicMetadata.name
+            )?.numPartitions! - topicMetadata.partitions.length
         }))
-      }),
-      this.kafka.admin().deleteGroups(this.groupIdsToReset)
-    ]);
+      });
+
+    if (topicsToCreate.length)
+      await this.kafka.admin().createTopics({
+        topics: topicsToCreate.map(topic => {
+          const numPartitions = this.subscribedTopics.find(
+            subscribedTopic => subscribedTopic.name === topic
+          )?.numPartitions;
+
+          return {
+            topic,
+            numPartitions: numPartitions ?? -1,
+            replicationFactor: -1,
+            configEntries: [
+              {
+                name: "cleanup.policy",
+                value: "delete"
+              }
+            ]
+          };
+        })
+      });
 
     await this.kafka.admin().disconnect();
   }

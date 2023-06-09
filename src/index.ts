@@ -4,7 +4,7 @@ import { BridgeRepository } from "./@types/repositories/bridge";
 
 import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
-import { UseCaseTopics } from "./@types/infra/topics";
+import { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
 
 import { Logger, LogLevel } from "./shared/utils/logger";
 
@@ -33,10 +33,9 @@ class Bridge implements BridgeRepository {
       ssl?: boolean;
     },
     private readonly groupId: string,
-    private readonly subscribedTopics: string[],
+    private readonly subscribedTopics: SubscribedTopic[],
     private readonly logLevel: LogLevel,
     private readonly useCaseTopics?: UseCaseTopics,
-    private readonly groupIdsToReset?: string[],
     private readonly subscribedOrigin?: string
   ) {
     this.logger = new Logger(origin, this.logLevel);
@@ -55,10 +54,8 @@ class Bridge implements BridgeRepository {
     this.kafkaMessaging = new KafkaMessaging(
       kafka,
       this.groupId,
-      this.subscribedTopics.map(
-        topic => `${subscribedOrigin ?? origin}.${topic}`
-      ),
-      this.groupIdsToReset
+      subscribedOrigin ?? origin,
+      this.subscribedTopics
     );
   }
 
