@@ -38,6 +38,10 @@ class KafkaMessaging {
 
     const topicsMetadata = await this.kafka.admin().fetchTopicMetadata();
 
+    this.logger.log(
+      `Topics metadata: ${JSON.stringify(topicsMetadata.topics, null, 2)}`
+    );
+
     const topicsToCreate = this.topics.filter(
       topic =>
         !topicsMetadata.topics.find(
