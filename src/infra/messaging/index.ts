@@ -6,6 +6,8 @@ import { KafkaProducer } from "./kafka/producer";
 
 import { SubscribedTopic } from "../../@types/infra/topics";
 
+import { logger } from "../logs/logger";
+
 class KafkaMessaging {
   private kafkaConsumer: KafkaConsumer;
   private kafkaProducer: KafkaProducer;
@@ -52,7 +54,13 @@ class KafkaMessaging {
       return topicMetadata.partitions.length < numPartitions;
     });
 
-    if (topicsToModify.length)
+    if (topicsToModify.length) {
+      logger.log(
+        `Modifying partitions for topics: ${topicsToModify
+          .map(topicMetadata => topicMetadata.name)
+          .join(", ")}`
+      );
+
       await this.kafka.admin().createPartitions({
         validateOnly: false,
         timeout: 5000,
@@ -64,6 +72,7 @@ class KafkaMessaging {
             )?.numPartitions! - topicMetadata.partitions.length
         }))
       });
+    }
 
     if (topicsToCreate.length)
       await this.kafka.admin().createTopics({

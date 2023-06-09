@@ -6,7 +6,7 @@ import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
 import { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
 
-import { Logger, LogLevel } from "./shared/utils/logger";
+import { logger, LogLevel } from "./infra/logs/logger";
 
 import { CallbackStorage } from "./infra/http/callback-storage";
 
@@ -15,7 +15,6 @@ import { KafkaClient, KafkaMessaging } from "./infra/messaging";
 import { BaseValidator } from "./infra/validations/base";
 
 class Bridge implements BridgeRepository {
-  private logger: Logger;
   private kafkaClient: KafkaClient;
   private kafkaMessaging: KafkaMessaging;
   private callbackStorage = new CallbackStorage();
@@ -38,9 +37,9 @@ class Bridge implements BridgeRepository {
     private readonly useCaseTopics?: UseCaseTopics,
     private readonly subscribedOrigin?: string
   ) {
-    this.logger = new Logger(origin, this.logLevel);
+    logger.setLogLevel(this.logLevel);
 
-    this.logger.log("Initializing bridge...");
+    logger.log("Initializing bridge...");
 
     this.kafkaClient = new KafkaClient(
       this.kafkaConfig.clientId,
@@ -60,11 +59,11 @@ class Bridge implements BridgeRepository {
   }
 
   public async connect(): Promise<void> {
-    this.logger.log("Syncing topics...");
+    logger.log("Syncing topics...");
 
     await this.kafkaMessaging.syncTopics();
 
-    this.logger.log("Connecting to Kafka...");
+    logger.log("Connecting to Kafka...");
 
     await this.kafkaMessaging.connect();
 
@@ -74,7 +73,7 @@ class Bridge implements BridgeRepository {
 
         topic = topic.split(".")[1];
 
-        this.logger.log(
+        logger.log(
           `Received Message on topic <${topic}>: ${message.value.toString()}`,
           LogLevel.DEBUG
         );
@@ -94,7 +93,7 @@ class Bridge implements BridgeRepository {
 
     const { hash, payload, origin, callback, callbackTopic } = message;
 
-    this.logger.log(`Received message on topic <${topic}>`);
+    logger.log(`Received message on topic <${topic}>`);
 
     const validation = await this.validatePayload(topic, payload);
 
@@ -130,8 +129,8 @@ class Bridge implements BridgeRepository {
           ]
         });
 
-        this.logger.log(`Sent message to ${origin} on topic <${topic}>`);
-        this.logger.log(`Message: ${JSON.stringify(response)}`, LogLevel.DEBUG);
+        logger.log(`Sent message to ${origin} on topic <${topic}>`);
+        logger.log(`Message: ${JSON.stringify(response)}`, LogLevel.DEBUG);
       }
     }
   }
@@ -162,7 +161,7 @@ class Bridge implements BridgeRepository {
 
     if (!record) return;
 
-    this.logger.log(`Received message from ${origin} on topic <${topic}>`);
+    logger.log(`Received message from ${origin} on topic <${topic}>`);
 
     this.callbackStorage.remove(hash);
 
@@ -191,12 +190,12 @@ class Bridge implements BridgeRepository {
         const microservice = topic.split(".")[0];
         const messageTopic = topic.split(".")[1];
 
-        this.logger.log(
+        logger.log(
           `Sent message to ${microservice} on topic <${messageTopic}>`
         );
-        this.logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
+        logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
       } catch (error) {
-        this.logger.log(
+        logger.log(
           `Error while sending message to ${topic}: ${
             (error as Error).message ?? String(error)
           }`,
