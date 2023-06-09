@@ -49,6 +49,12 @@ class KafkaMessaging {
     });
 
     this.logger.log(
+      `Subscribed topics: ${this.subscribedTopics
+        .map(subscribedTopic => subscribedTopic.name)
+        .join(", ")}`
+    );
+
+    this.logger.log(
       `Topics to modify: ${topicsToModify
         .map(topicMetadata => topicMetadata.name)
         .join(", ")}`
