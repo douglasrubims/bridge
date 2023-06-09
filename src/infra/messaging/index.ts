@@ -38,27 +38,15 @@ class KafkaMessaging {
 
     const topicsMetadata = await this.kafka.admin().fetchTopicMetadata();
 
+    const findTopic = (topicName: string) =>
+      this.subscribedTopics.find(
+        subscribedTopic => `${this.origin}${subscribedTopic.name}` === topicName
+      );
+
     const topicsToModify = topicsMetadata.topics.filter(topicMetadata => {
-      const numPartitions = this.subscribedTopics.find(
-        subscribedTopic => subscribedTopic.name === topicMetadata.name
-      )?.numPartitions;
-
-      if (!numPartitions) return false;
-
-      return topicMetadata.partitions.length < numPartitions;
+      const numPartitions = findTopic(topicMetadata.name)?.numPartitions;
+      return numPartitions && topicMetadata.partitions.length < numPartitions;
     });
-
-    this.logger.log(
-      `Subscribed topics: ${this.subscribedTopics
-        .map(subscribedTopic => subscribedTopic.name)
-        .join(", ")}`
-    );
-
-    this.logger.log(
-      `Topics to modify: ${topicsToModify
-        .map(topicMetadata => topicMetadata.name)
-        .join(", ")}`
-    );
 
     if (topicsToModify.length) {
       this.logger.log(
@@ -73,9 +61,8 @@ class KafkaMessaging {
         topicPartitions: topicsToModify.map(topicMetadata => ({
           topic: topicMetadata.name,
           count:
-            this.subscribedTopics.find(
-              subscribedTopic => subscribedTopic.name === topicMetadata.name
-            )?.numPartitions! - topicMetadata.partitions.length
+            findTopic(topicMetadata.name)?.numPartitions! -
+            topicMetadata.partitions.length
         }))
       });
     }
@@ -92,9 +79,7 @@ class KafkaMessaging {
 
       await this.kafka.admin().createTopics({
         topics: topicsToCreate.map(topic => {
-          const numPartitions = this.subscribedTopics.find(
-            subscribedTopic => subscribedTopic.name === topic
-          )?.numPartitions;
+          const numPartitions = findTopic(topic)?.numPartitions;
 
           return {
             topic,
