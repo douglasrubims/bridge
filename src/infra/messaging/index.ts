@@ -81,6 +81,10 @@ class KafkaMessaging {
         topics: topicsToCreate.map(topic => {
           const numPartitions = findTopic(topic)?.numPartitions;
 
+          this.logger.log(
+            `Creating topic ${topic} with ${numPartitions} partitions`
+          );
+
           return {
             topic,
             numPartitions: numPartitions ?? -1,
