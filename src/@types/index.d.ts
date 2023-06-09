@@ -1,6 +1,6 @@
 import { Bridge } from "..";
 
-import { LogLevel } from "../shared/utils/logger";
+import { LogLevel } from "../infra/logs/logger";
 
 import { Request } from "./infra/request";
 import { Response } from "./infra/response";
