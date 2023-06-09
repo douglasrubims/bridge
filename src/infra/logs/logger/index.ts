@@ -25,8 +25,7 @@ class Logger {
   }
 
   public log(message: string, logLevel: LogLevel = LogLevel.INFO): void {
-    console.log(this.logLevel, logLevel, this.logLevel ?? 0 >= logLevel);
-    if (this.logLevel ?? 0 >= logLevel)
+    if ((this.logLevel ?? 0) >= logLevel)
       console.log(`[${this.origin}] ${message}`);
   }
 }
