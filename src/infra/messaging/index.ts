@@ -75,11 +75,13 @@ class KafkaMessaging {
     );
 
     if (topicsToCreate.length) {
-      this.logger.log(`Creating topics: ${topicsToCreate.join(", ")}`);
+      this.logger.log(
+        `Creating topics: ${topicsToCreate.map(topic => topic.name).join(", ")}`
+      );
 
       await this.kafka.admin().createTopics({
         topics: topicsToCreate.map(topic => ({
-          topic: topic.name,
+          topic: `${this.origin}.${topic.name}`,
           numPartitions: topic.numPartitions ?? -1,
           replicationFactor: -1,
           configEntries: [
