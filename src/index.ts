@@ -1,3 +1,4 @@
+import { CompressionTypes } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 
 import { BridgeRepository } from "./@types/repositories/bridge";
@@ -117,16 +118,21 @@ class Bridge implements BridgeRepository {
       if (callback) {
         if (callbackTopic) topic = callbackTopic;
 
-        await this.kafkaMessaging.producer.send({
-          topic: `${origin}.${topic}`,
-          messages: [
+        await this.kafkaMessaging.producer.sendBatch({
+          compression: CompressionTypes.LZ4,
+          topicMessages: [
             {
-              value: JSON.stringify({
-                hash,
-                payload: response,
-                origin: this.origin,
-                callback: false
-              })
+              topic: `${origin}.${topic}`,
+              messages: [
+                {
+                  value: JSON.stringify({
+                    hash,
+                    payload: response,
+                    origin: this.origin,
+                    callback: false
+                  })
+                }
+              ]
             }
           ]
         });
@@ -184,9 +190,14 @@ class Bridge implements BridgeRepository {
           callback: true
         };
 
-        this.kafkaMessaging.producer.send({
-          topic,
-          messages: [{ value: JSON.stringify(message) }]
+        this.kafkaMessaging.producer.sendBatch({
+          compression: CompressionTypes.LZ4,
+          topicMessages: [
+            {
+              topic,
+              messages: [{ value: JSON.stringify(message) }]
+            }
+          ]
         });
 
         const microservice = topic.split(".")[0];
