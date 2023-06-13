@@ -119,7 +119,7 @@ class Bridge implements BridgeRepository {
         if (callbackTopic) topic = callbackTopic;
 
         await this.kafkaMessaging.producer.sendBatch({
-          compression: CompressionTypes.LZ4,
+          compression: CompressionTypes.GZIP,
           topicMessages: [
             {
               topic: `${origin}.${topic}`,
@@ -191,7 +191,7 @@ class Bridge implements BridgeRepository {
         };
 
         this.kafkaMessaging.producer.sendBatch({
-          compression: CompressionTypes.LZ4,
+          compression: CompressionTypes.GZIP,
           topicMessages: [
             {
               topic,

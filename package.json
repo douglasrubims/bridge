@@ -18,7 +18,6 @@
   "dependencies": {
     "@types/uuid": "^9.0.1",
     "kafkajs": "^2.2.4",
-    "kafkajs-lz4": "^2.0.0-beta.0",
     "uuid": "^9.0.0"
   },
   "devDependencies": {
