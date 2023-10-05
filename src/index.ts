@@ -38,7 +38,7 @@ class Bridge implements BridgeRepository {
     private readonly logLevel: LogLevel,
     private readonly useCaseTopics?: UseCaseTopics,
     private readonly subscribedOrigin?: string,
-    private readonly partitionsConsumedConcurrently = 5
+    private readonly partitionsConsumedConcurrently = 1
   ) {
     this.logger.setOrigin(this.origin);
     this.logger.setLogLevel(this.logLevel);
