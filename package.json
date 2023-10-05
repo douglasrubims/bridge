@@ -1,6 +1,6 @@
 {
   "name": "bridge",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Bridge is a communication interface between microservices with kafkajs and express.js.",
   "main": "build/index.js",
   "repository": "https://github.com/douglasrubims/Bridge.git",
