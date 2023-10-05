@@ -9,7 +9,7 @@ import { SubscribedTopic } from "../../@types/infra/topics";
 import { Logger } from "../logs/logger";
 
 class KafkaMessaging {
-  private kafkaConsumer: KafkaConsumer;
+  private kafkaConsumers: KafkaConsumer[];
   private kafkaProducer: KafkaProducer;
   private logger = Logger.getInstance();
   private topics: string[] = [];
@@ -24,10 +24,8 @@ class KafkaMessaging {
       topic => `${this.origin}.${topic.name}`
     );
 
-    this.kafkaConsumer = new KafkaConsumer(
-      this.kafka,
-      this.groupId,
-      this.topics
+    this.kafkaConsumers = this.topics.map(
+      topic => new KafkaConsumer(this.kafka, this.groupId, topic)
     );
 
     this.kafkaProducer = new KafkaProducer(this.kafka);
@@ -101,13 +99,13 @@ class KafkaMessaging {
 
   public async connect(): Promise<void> {
     await Promise.all([
-      this.kafkaConsumer.connect(),
-      this.kafkaProducer.connect()
+      this.kafkaProducer.connect(),
+      ...this.kafkaConsumers.map(consumer => consumer.connect())
     ]);
   }
 
-  public get consumer(): Consumer {
-    return this.kafkaConsumer.getInstance();
+  public get consumers(): Consumer[] {
+    return this.kafkaConsumers.map(consumer => consumer.getInstance());
   }
 
   public get producer(): Producer {

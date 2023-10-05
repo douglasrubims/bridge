@@ -71,21 +71,25 @@ class Bridge implements BridgeRepository {
 
     await this.kafkaMessaging.connect();
 
-    await this.kafkaMessaging.consumer.run({
-      eachMessage: async ({ topic, message }) => {
-        if (!message.value) return;
+    await Promise.all(
+      this.kafkaMessaging.consumers.map(consumer =>
+        consumer.run({
+          eachMessage: async ({ topic, message }) => {
+            if (!message.value) return;
 
-        topic = topic.split(".")[1];
+            topic = topic.split(".")[1];
 
-        this.logger.log(
-          `Received Message on topic <${topic}>: ${message.value.toString()}`,
-          LogLevel.DEBUG
-        );
+            this.logger.log(
+              `Received Message on topic <${topic}>: ${message.value.toString()}`,
+              LogLevel.DEBUG
+            );
 
-        await this.process(topic, JSON.parse(message.value.toString()));
-      },
-      partitionsConsumedConcurrently: this.partitionsConsumedConcurrently
-    });
+            await this.process(topic, JSON.parse(message.value.toString()));
+          },
+          partitionsConsumedConcurrently: this.partitionsConsumedConcurrently
+        })
+      )
+    );
   }
 
   private async process(topic: string, message: Request): Promise<void> {
