@@ -27,7 +27,7 @@ class KafkaMessaging {
     this.kafkaProducer = new KafkaProducer(this.kafka);
 
     this.kafkaConsumers = this.topics.map(
-      topic => new KafkaConsumer(this.kafka, this.groupId + topic, topic)
+      topic => new KafkaConsumer(this.kafka, `${this.groupId}-${topic}`, topic)
     );
   }
 
