@@ -24,11 +24,11 @@ class KafkaMessaging {
       topic => `${this.origin}.${topic.name}`
     );
 
-    this.kafkaConsumers = this.topics.map(
-      topic => new KafkaConsumer(this.kafka, this.groupId, topic)
-    );
-
     this.kafkaProducer = new KafkaProducer(this.kafka);
+
+    this.kafkaConsumers = this.topics.map(
+      topic => new KafkaConsumer(this.kafka, this.groupId + topic, topic)
+    );
   }
 
   public async syncTopics(): Promise<void> {
