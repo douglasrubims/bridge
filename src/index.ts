@@ -37,7 +37,8 @@ class Bridge implements BridgeRepository {
     private readonly subscribedTopics: SubscribedTopic[],
     private readonly logLevel: LogLevel,
     private readonly useCaseTopics?: UseCaseTopics,
-    private readonly subscribedOrigin?: string
+    private readonly subscribedOrigin?: string,
+    private readonly partitionsConsumedConcurrently = 5
   ) {
     this.logger.setOrigin(this.origin);
     this.logger.setLogLevel(this.logLevel);
@@ -82,7 +83,8 @@ class Bridge implements BridgeRepository {
         );
 
         await this.process(topic, JSON.parse(message.value.toString()));
-      }
+      },
+      partitionsConsumedConcurrently: this.partitionsConsumedConcurrently
     });
   }
 
