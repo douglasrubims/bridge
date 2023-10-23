@@ -18,7 +18,8 @@ class KafkaMessaging {
     private readonly kafka: Kafka,
     private readonly groupId: string,
     private readonly origin: string,
-    private readonly subscribedTopics: SubscribedTopic[]
+    private readonly subscribedTopics: SubscribedTopic[],
+    private readonly multipleConsumers: boolean
   ) {
     this.topics = this.subscribedTopics.map(
       topic => `${this.origin}.${topic.name}`
@@ -26,9 +27,15 @@ class KafkaMessaging {
 
     this.kafkaProducer = new KafkaProducer(this.kafka);
 
-    this.kafkaConsumers = this.topics.map(
-      topic => new KafkaConsumer(this.kafka, `${this.groupId}-${topic}`, topic)
-    );
+    if (this.multipleConsumers)
+      this.kafkaConsumers = this.topics.map(
+        topic =>
+          new KafkaConsumer(this.kafka, `${this.groupId}-${topic}`, [topic])
+      );
+    else
+      this.kafkaConsumers = [
+        new KafkaConsumer(this.kafka, this.groupId, this.topics)
+      ];
   }
 
   public async syncTopics(): Promise<void> {

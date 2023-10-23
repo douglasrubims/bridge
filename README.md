@@ -1,21 +1,39 @@
-# Bridge
+## Bridge
 
-Bridge is a communication interface between microservices with kafkajs with promise support.
+###### A Bridge to a microservices network mesh that supports promises.
 
-## Install
+#### Install
 
-Command: `npm i douglasrubims/bridge` or `yarn add douglasrubims/bridge`
+`npm i douglasrubims/bridge#V0.1.8` || `yarn add douglasrubims/bridge#V0.1.8`
 
-## Example
+#### Example
 
 ```ts
-import { Bridge, UseCaseTopics } from "bridge";
+import { Bridge, BridgeResponse, BridgeUseCaseTopics } from "bridge";
+import { SubscribedTopic } from "bridge/src/@types/infra/topics";
+import Joi from "joi";
 
-// Received messages will come to use case function automatically
-const businessRules: UseCaseTopics = {
-  "microservice.topic-name": {
-    useCase: yourFunctionHere,
-    validation: yourJoiSchemaHere
+function helloWorld({ name }: { name: string }): Promise<BridgeResponse> {
+  console.log(`Hello world, ${name}!`);
+
+  return {
+    success: true,
+    message: "Hello world executed successfully."
+  };
+}
+
+const helloWorldJoiVSchema = (data: Record<string, unknown>) =>
+  Joi.object({
+    name: Joi.string().required().label("Name")
+  }).validateAsync(data, {
+    abortEarly: true
+  });
+
+// received messages will reach the usecase function automatically
+const TOPICS: BridgeUseCaseTopics = {
+  "hello-world": {
+    useCase: helloWorld,
+    validation: helloWorldJoiVSchema
   }
 };
 
@@ -23,6 +41,13 @@ class App {
   private bridge: Bridge;
 
   constructor() {
+    const subscribedTopics: SubscribedTopic[] = Object.keys(TOPICS).map(
+      topic => ({
+        name: topic,
+        numPartitions: TOPICS[topic].numPartitions
+      })
+    );
+
     const kafkaConfig = {
       brokers: [process.env.KAFKA_BROKER],
       sasl: {
@@ -33,27 +58,31 @@ class App {
       ssl: true
     };
 
-    const topics = Object.keys(businessRules);
-
-    const topics = topics.reduce((acc: string[], microservice: string) => {
-      return [...acc, ...businessRules[microservice]];
-    }, []);
-
     this.bridge = new Bridge(
-      "microservice-name", // origin
-      kafkaConfig, // kafka config
-      "micro-t1", // kafka groupId
-      topics, // topics object
-      logLevel, // 0 = INFO | 1 = DEBUG
-      TOPICS, // consumer topics (optional)
-      "other-microservice-name" // send message as other microservice name (optional)
+      "microservice-name", // origin (microservice name)
+      kafkaConfig, // kafka server config
+      "microservice-name-t1", // kafka groupId
+      subscribedTopics, // topics that your microservice will listen
+      0, // Log Level: 0 = INFO | 1 = DEBUG
+      TOPICS, // consumer topics (optional) -> your microservice usecases
+      undefined, // send message as other microservice name {String} (optional) -> useful to debug microservices
+      5 // number of messages consumed by topic concurrently (optional)
     );
 
-    // Send messages
+    // Example that another microservice sends a request
     const response = await this.bridge.dispatch(
-      "destiny.hello-world", // microservice.topic
-      { helloworld: "Hello world!" } // your payload
+      "microservice-name.hello-world", // format: microservice-name.topic-name
+      { name: "Douglas Rubim" } // your payload
     );
+
+    console.log(response);
+    // {
+    //   success: true,
+    //   message: "Hello world executed successfully."
+    // }
+
+    // on the microservice console:
+    // Hello world, Douglas Rubim.
   }
 }
 
