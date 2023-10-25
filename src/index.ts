@@ -90,43 +90,6 @@ class Bridge implements BridgeRepository {
       else processor.processCallback(topic, message);
   }
 
-    try {
-      if (validation?.isValid)
-        response = await this.useCaseTopics[topic].useCase(payload);
-    } catch (error) {
-      response = {
-        success: false,
-        message: (error as Error).message || String(error) || "Unknown error"
-      };
-    } finally {
-      if (callback) {
-        if (callbackTopic) topic = callbackTopic;
-
-        await this.kafkaMessaging.producer.sendBatch({
-          compression: CompressionTypes.GZIP,
-          topicMessages: [
-            {
-              topic: `${origin}.${topic}`,
-              messages: [
-                {
-                  value: JSON.stringify({
-                    hash,
-                    payload: response,
-                    origin: this.origin,
-                    callback: false
-                  })
-                }
-              ]
-            }
-          ]
-        });
-
-        this.logger.log(`Sent message to ${origin} on topic <${topic}>`);
-        this.logger.log(`Message: ${JSON.stringify(response)}`, LogLevel.DEBUG);
-      }
-    }
-  }
-
   private async validatePayload(
     topic: string,
     payload: any
@@ -187,14 +150,40 @@ class Bridge implements BridgeRepository {
                   `Sent message to ${microservice} on topic <${messageTopic}>`
                 );
                 this.logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
-              } catch (error) {
-                this.logger.log(
+      } catch (error) {
+        this.logger.log(
           `Error while sending message to ${topic}: ${
             (error as Error).message ?? String(error)
           }`
         );
 
         reject(error);
+      } finally {
+        if (callback) {
+          if (callbackTopic) topic = callbackTopic;
+
+          await this.kafkaMessaging.producer.sendBatch({
+            compression: CompressionTypes.GZIP,
+            topicMessages: [
+              {
+                topic: `${origin}.${topic}`,
+                messages: [
+                  {
+                    value: JSON.stringify({
+                      hash,
+                      payload: response,
+                      origin: this.origin,
+                      callback: false
+                    })
+                  }
+                ]
+              }
+            ]
+          });
+
+          this.logger.log(`Sent message to ${origin} on topic <${topic}>`);
+          this.logger.log(`Message: ${JSON.stringify(response)}`, LogLevel.DEBUG);
+        }
       }
     });
   }
