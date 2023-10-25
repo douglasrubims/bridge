@@ -19,11 +19,12 @@ class KafkaMessaging {
     private readonly origin: string,
     private readonly subscribedTopics: SubscribedTopic[]
   ) {
-    const separatedConsumerTopics = this.subscribedTopics.filter(
-      topic => topic.separatedConsumer
-    );
     const commonConsumerTopics = this.subscribedTopics.filter(
       topic => !topic.separatedConsumer
+    );
+
+    const separatedConsumerTopics = this.subscribedTopics.filter(
+      topic => topic.separatedConsumer
     );
 
     this.kafkaProducer = new KafkaProducer(this.kafka);
@@ -34,20 +35,20 @@ class KafkaMessaging {
       this.kafkaConsumers.push(
         new KafkaConsumer(
           this.kafka,
-          `${this.groupId}`,
+          this.groupId,
           commonConsumerTopics.map(topic => `${this.origin}.${topic.name}`)
         )
       );
 
     if (separatedConsumerTopics.length)
-      this.kafkaConsumers.concat(
-        separatedConsumerTopics.map(
-          topic =>
-            new KafkaConsumer(this.kafka, `${this.groupId}-${topic.name}`, [
-              `${this.origin}.${topic.name}`
-            ])
-        )
-      );
+      for (let i = 0; i < separatedConsumerTopics.length; i++)
+        this.kafkaConsumers.push(
+          new KafkaConsumer(
+            this.kafka,
+            `${this.groupId}-${separatedConsumerTopics[i].name}`,
+            [`${this.origin}.${separatedConsumerTopics[i].name}`]
+          )
+        );
   }
 
   public async syncTopics(): Promise<void> {
