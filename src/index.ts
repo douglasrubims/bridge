@@ -7,7 +7,8 @@ import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
 import { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
 
-import { ILogger, LogLevel } from "./infra/logs/logger";
+import { LogLevel } from "./infra/logs/logger";
+import { LoggerService } from "./infra/logs/logger/logger-service";
 import { MessageProcessor } from "./infra/processor/message-processor";
 
 class Bridge implements BridgeRepository {
@@ -36,16 +37,16 @@ class Bridge implements BridgeRepository {
     this.logger = new LoggerService(this.origin, this.logLevel);
     this.logger.log("Initializing bridge...");
 
-    this.kafkaClient = new KafkaClientService(
+    const kafkaClient = new KafkaClientService(
       this.kafkaConfig.clientId,
       this.kafkaConfig.brokers,
       this.kafkaConfig.sasl,
       this.kafkaConfig.ssl
     );
 
-    const kafka = this.kafkaClient.getKafkaInstance();
+    const kafka = kafkaClient.getKafkaInstance();
 
-    this.kafkaMessaging = new KafkaMessagingService(
+    const kafkaMessaging = new KafkaMessagingService(
       kafka,
       this.groupId,
       subscribedOrigin ?? origin,
@@ -85,9 +86,9 @@ class Bridge implements BridgeRepository {
   }
 
   private async process(topic: string, message: Request): Promise<void> {
-    const processor = new MessageProcessor(this.useCaseTopics, this.logger);
-    if (message.callback) await processor.processRequest(topic, message);
-    else processor.processCallback(topic, message);
+    const messageProcessor = new MessageProcessor(this.useCaseTopics, this.logger);
+    if (message.callback) await messageProcessor.processRequest(topic, message);
+    else messageProcessor.processCallback(topic, message);
   }
 
   private async validatePayload(
@@ -110,8 +111,8 @@ class Bridge implements BridgeRepository {
   }
 
   private processCallback(topic: string, message: Request): void {
-    const processor = new MessageProcessor(this.useCaseTopics, this.logger);
-    processor.processCallback(topic, message);
+    const messageProcessor = new MessageProcessor(this.useCaseTopics, this.logger);
+    messageProcessor.processCallback(topic, message);
 
     this.callbackStorage.remove(hash);
 
@@ -132,7 +133,7 @@ class Bridge implements BridgeRepository {
           callback: true
         };
 
-        const producer = this.kafkaMessaging.getProducer();
+        const producer = kafkaMessaging.getProducer();
         producer.sendBatch({
           compression: CompressionTypes.GZIP,
           topicMessages: [
@@ -162,7 +163,7 @@ class Bridge implements BridgeRepository {
         if (callback) {
           if (callbackTopic) topic = callbackTopic;
 
-          await this.kafkaMessaging.producer.sendBatch({
+          await kafkaMessaging.producer.sendBatch({
             compression: CompressionTypes.GZIP,
             topicMessages: [
               {
