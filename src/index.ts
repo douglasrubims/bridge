@@ -8,6 +8,7 @@ import { Response } from "./@types/infra/response";
 import { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
 
 import { ILogger, LogLevel } from "./infra/logs/logger";
+import { MessageProcessor } from "./infra/processor/message-processor";
 
 class Bridge implements BridgeRepository {
   private logger: ILogger;
@@ -87,15 +88,7 @@ class Bridge implements BridgeRepository {
       const processor = new MessageProcessor(this.useCaseTopics, this.logger);
       if (message.callback) await processor.processRequest(topic, message);
       else processor.processCallback(topic, message);
-    }
-
-    const validation = await this.validatePayload(topic, payload);
-
-    let response: Response = {
-      success: false,
-      message: "Invalid payload",
-      data: { errors: validation?.errors }
-    };
+  }
 
     try {
       if (validation?.isValid)
