@@ -8,7 +8,9 @@ import { Response } from "./@types/infra/response";
 import { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
 
 import { ILogger, LogLevel } from "./infra/logs/logger";
-private logger: ILogger;
+
+class Bridge implements BridgeRepository {
+  private logger: ILogger;
 
   constructor(
     private readonly origin: string,
