@@ -10,6 +10,7 @@ export interface UseCaseTopic {
   useCase: (payload: any) => Promise<Response>;
   validation: any;
   numPartitions?: number;
+  separatedConsumer?: boolean;
 }
 
 export interface UseCaseTopics {
