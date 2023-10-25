@@ -13,13 +13,20 @@ class KafkaMessagingService {
     private readonly subscribedTopics: SubscribedTopic[],
     private readonly multipleConsumers: boolean
   ) {
-    this.consumer = new KafkaConsumer(kafka, groupId, subscribedTopics.map(topic => topic.name));
+    this.consumer = new KafkaConsumer(
+      kafka,
+      groupId,
+      subscribedTopics.map(topic => topic.name)
+    );
     this.producer = new KafkaProducer(kafka);
   }
 
   public async syncTopics(): Promise<void> {
     for (const topic of this.subscribedTopics) {
-      await this.consumer.subscribe({ topic: topic.name, fromBeginning: topic.fromBeginning });
+      await this.consumer.subscribe({
+        topic: topic.name,
+        fromBeginning: topic.fromBeginning
+      });
     }
   }
 
