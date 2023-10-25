@@ -10,7 +10,7 @@ describe("KafkaClientService", () => {
   const sasl = {
     mechanism: "scram-sha-512",
     username: "username",
-    password: "password",
+    password: "password"
   };
   const ssl = true;
 
@@ -25,7 +25,7 @@ describe("KafkaClientService", () => {
       clientId,
       brokers,
       sasl,
-      ssl,
+      ssl
     });
   });
 
