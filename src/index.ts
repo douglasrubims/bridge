@@ -7,19 +7,8 @@ import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
 import { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
 
-import { Logger, LogLevel } from "./infra/logs/logger";
-
-import { CallbackStorage } from "./infra/http/callback-storage";
-
-import { KafkaClient, KafkaMessaging } from "./infra/messaging";
-
-import { BaseValidator } from "./infra/validations/base";
-
-class Bridge implements BridgeRepository {
-  private kafkaClient: KafkaClient;
-  private kafkaMessaging: KafkaMessaging;
-  private callbackStorage = new CallbackStorage();
-  private logger = Logger.getInstance();
+import { ILogger, LogLevel } from "./infra/logs/logger";
+private logger: ILogger;
 
   constructor(
     private readonly origin: string,
@@ -41,21 +30,19 @@ class Bridge implements BridgeRepository {
     private readonly partitionsConsumedConcurrently = 1,
     private readonly multipleConsumers = true
   ) {
-    this.logger.setOrigin(this.origin);
-    this.logger.setLogLevel(this.logLevel);
-
+    this.logger = new LoggerService(this.origin, this.logLevel);
     this.logger.log("Initializing bridge...");
-
-    this.kafkaClient = new KafkaClient(
+    
+    this.kafkaClient = new KafkaClientService(
       this.kafkaConfig.clientId,
       this.kafkaConfig.brokers,
       this.kafkaConfig.sasl,
       this.kafkaConfig.ssl
     );
-
-    const kafka = this.kafkaClient.getInstance();
-
-    this.kafkaMessaging = new KafkaMessaging(
+    
+    const kafka = this.kafkaClient.getKafkaInstance();
+    
+    this.kafkaMessaging = new KafkaMessagingService(
       kafka,
       this.groupId,
       subscribedOrigin ?? origin,
@@ -95,16 +82,10 @@ class Bridge implements BridgeRepository {
   }
 
   private async process(topic: string, message: Request): Promise<void> {
-    if (message.callback) await this.processRequest(topic, message);
-    else this.processCallback(topic, message);
-  }
-
-  private async processRequest(topic: string, message: Request): Promise<void> {
-    if (!this.useCaseTopics) return;
-
-    const { hash, payload, origin, callback, callbackTopic } = message;
-
-    this.logger.log(`Received message on topic <${topic}>`);
+      const processor = new MessageProcessor(this.useCaseTopics, this.logger);
+      if (message.callback) await processor.processRequest(topic, message);
+      else processor.processCallback(topic, message);
+    }
 
     const validation = await this.validatePayload(topic, payload);
 
@@ -171,13 +152,8 @@ class Bridge implements BridgeRepository {
   }
 
   private processCallback(topic: string, message: Request): void {
-    const { hash, payload, origin } = message;
-
-    const record = this.callbackStorage.get(hash);
-
-    if (!record) return;
-
-    this.logger.log(`Received message from ${origin} on topic <${topic}>`);
+      const processor = new MessageProcessor(this.useCaseTopics, this.logger);
+      processor.processCallback(topic, message);
 
     this.callbackStorage.remove(hash);
 
@@ -198,25 +174,26 @@ class Bridge implements BridgeRepository {
           callback: true
         };
 
-        this.kafkaMessaging.producer.sendBatch({
-          compression: CompressionTypes.GZIP,
-          topicMessages: [
-            {
-              topic,
-              messages: [{ value: JSON.stringify(message) }]
-            }
-          ]
-        });
-
-        const microservice = topic.split(".")[0];
-        const messageTopic = topic.split(".")[1];
-
-        this.logger.log(
-          `Sent message to ${microservice} on topic <${messageTopic}>`
-        );
-        this.logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
-      } catch (error) {
-        this.logger.log(
+        const producer = this.kafkaMessaging.getProducer();
+        producer.sendBatch({
+                  compression: CompressionTypes.GZIP,
+                  topicMessages: [
+                    {
+                      topic,
+                      messages: [{ value: JSON.stringify(message) }]
+                    }
+                  ]
+                });
+        
+                const microservice = topic.split(".")[0];
+                const messageTopic = topic.split(".")[1];
+        
+                this.logger.log(
+                  `Sent message to ${microservice} on topic <${messageTopic}>`
+                );
+                this.logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
+              } catch (error) {
+                this.logger.log(
           `Error while sending message to ${topic}: ${
             (error as Error).message ?? String(error)
           }`
