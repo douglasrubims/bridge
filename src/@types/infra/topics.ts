@@ -3,6 +3,7 @@ import { Response } from "./response";
 export interface SubscribedTopic {
   name: string;
   numPartitions?: number;
+  separatedConsumer?: boolean;
 }
 
 export interface UseCaseTopic {

@@ -12,30 +12,42 @@ class KafkaMessaging {
   private kafkaConsumers: KafkaConsumer[];
   private kafkaProducer: KafkaProducer;
   private logger = Logger.getInstance();
-  private topics: string[] = [];
 
   constructor(
     private readonly kafka: Kafka,
     private readonly groupId: string,
     private readonly origin: string,
-    private readonly subscribedTopics: SubscribedTopic[],
-    private readonly multipleConsumers: boolean
+    private readonly subscribedTopics: SubscribedTopic[]
   ) {
-    this.topics = this.subscribedTopics.map(
-      topic => `${this.origin}.${topic.name}`
+    const separatedConsumerTopics = this.subscribedTopics.filter(
+      topic => topic.separatedConsumer
+    );
+    const commonConsumerTopics = this.subscribedTopics.filter(
+      topic => !topic.separatedConsumer
     );
 
     this.kafkaProducer = new KafkaProducer(this.kafka);
 
-    if (this.multipleConsumers)
-      this.kafkaConsumers = this.topics.map(
-        topic =>
-          new KafkaConsumer(this.kafka, `${this.groupId}-${topic}`, [topic])
+    this.kafkaConsumers = [];
+
+    if (commonConsumerTopics.length)
+      this.kafkaConsumers.push(
+        new KafkaConsumer(
+          this.kafka,
+          `${this.groupId}`,
+          commonConsumerTopics.map(topic => `${this.origin}.${topic.name}`)
+        )
       );
-    else
-      this.kafkaConsumers = [
-        new KafkaConsumer(this.kafka, this.groupId, this.topics)
-      ];
+
+    if (separatedConsumerTopics.length)
+      this.kafkaConsumers.concat(
+        separatedConsumerTopics.map(
+          topic =>
+            new KafkaConsumer(this.kafka, `${this.groupId}-${topic.name}`, [
+              `${this.origin}.${topic.name}`
+            ])
+        )
+      );
   }
 
   public async syncTopics(): Promise<void> {
