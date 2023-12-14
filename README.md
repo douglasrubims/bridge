@@ -1,18 +1,43 @@
-## Bridge
+# Bridge: Simplifying Microservices Communication
 
-###### A Bridge to a microservices network mesh that supports promises.
+## Overview
 
-#### Install
+**Bridge** is a powerful tool designed to seamlessly connect microservices in a network mesh, enabling efficient communication and data exchange. Our focus is on simplicity and reliability, ensuring your microservices can easily make promises and fulfill them.
 
-`npm i douglasrubims/bridge#V0.1.8` || `yarn add douglasrubims/bridge#V0.1.8`
+## Getting Started
 
-#### Example
+### Installation
 
-```ts
+You can quickly add Bridge to your project using either npm or yarn. Choose the command that corresponds to your package manager:
+
+- Using npm:
+  ```
+  npm i douglasrubims/bridge#V0.2.1
+  ```
+- Using yarn:
+  ```
+  yarn add douglasrubims/bridge#V0.2.1
+  ```
+
+### Quick Example
+
+Let's dive into a simple example to get a feel for how Bridge works.
+
+#### Step 1: Import and Setup
+
+First, import the necessary components from Bridge:
+
+```typescript
 import { Bridge, BridgeResponse, BridgeUseCaseTopics } from "bridge";
 import { SubscribedTopic } from "bridge/src/@types/infra/topics";
 import Joi from "joi";
+```
 
+#### Step 2: Define a Function
+
+Create a function like `helloWorld` which will handle your requests. This function will log a message and return a promise:
+
+```typescript
 function helloWorld({ name }: { name: string }): Promise<BridgeResponse> {
   console.log(`Hello world, ${name}!`);
 
@@ -21,72 +46,62 @@ function helloWorld({ name }: { name: string }): Promise<BridgeResponse> {
     message: "Hello world executed successfully."
   };
 }
+```
 
+#### Step 3: Set Up Validation
+
+Use Joi to validate your data schemas:
+
+```typescript
 const helloWorldJoiVSchema = (data: Record<string, unknown>) =>
   Joi.object({
     name: Joi.string().required().label("Name")
-  }).validateAsync(data, {
-    abortEarly: true
-  });
+  }).validateAsync(data, { abortEarly: true });
+```
 
-// received messages will reach the usecase function automatically
+#### Step 4: Configure Topics
+
+Configure the topics that your microservice will listen to:
+
+```typescript
 const TOPICS: BridgeUseCaseTopics = {
   "hello-world": {
     useCase: helloWorld,
     validation: helloWorldJoiVSchema
   }
 };
+```
 
+#### Step 5: Initialize and Use Bridge
+
+Create your application class, initialize Bridge with your configuration, and demonstrate sending a message:
+
+```typescript
 class App {
   private bridge: Bridge;
 
   constructor() {
-    const subscribedTopics: SubscribedTopic[] = Object.keys(TOPICS).map(
-      topic => ({
-        name: topic,
-        numPartitions: TOPICS[topic].numPartitions
-      })
-    );
+    // [Insert your configuration setup here, including Kafka config]
 
-    const kafkaConfig = {
-      brokers: [process.env.KAFKA_BROKER],
-      sasl: {
-        mechanism: "scram-sha-512",
-        username: process.env.KAFKA_USER,
-        password: process.env.KAFKA_PASS
-      },
-      ssl: true
-    };
-
-    this.bridge = new Bridge(
-      "microservice-name", // origin (microservice name)
-      kafkaConfig, // kafka server config
-      "microservice-name-t1", // kafka groupId
-      subscribedTopics, // topics that your microservice will listen
-      0, // Log Level: 0 = INFO | 1 = DEBUG
-      TOPICS, // consumer topics (optional) -> your microservice usecases
-      undefined, // send message as other microservice name {String} (optional) -> useful to debug microservices
-      5 // number of messages consumed by topic concurrently (optional)
-    );
-
-    // Example that another microservice sends a request
+    // Example of dispatching a request
     const response = await this.bridge.dispatch(
-      "microservice-name.hello-world", // format: microservice-name.topic-name
-      { name: "Douglas Rubim" } // your payload
+      "microservice-name.hello-world",
+      { name: "Douglas Rubim" }
     );
 
-    console.log(response);
-    // {
-    //   success: true,
-    //   message: "Hello world executed successfully."
-    // }
+    console.log(response); // Expected output
+  }
 
-    // on the microservice console:
-    // Hello world, Douglas Rubim.
+  // Start your application
+  start() {
+    // [Your startup logic here]
   }
 }
 
 const app = new App();
-
 app.start();
 ```
+
+## Next Steps
+
+You're now ready to integrate Bridge into your microservices architecture! Explore the full capabilities of Bridge to enhance your application's communication and data handling.

@@ -85,12 +85,21 @@ class KafkaMessaging {
       });
     }
 
-    const topicsToCreate = this.subscribedTopics.filter(
-      topic =>
-        !topicsMetadata.topics.find(
-          topicMetadata => topicMetadata.name === `${this.origin}.${topic.name}`
-        )
-    );
+    const topicsToCreate = this.subscribedTopics
+      .filter(
+        topic =>
+          !topicsMetadata.topics.find(
+            topicMetadata =>
+              topicMetadata.name === `${this.origin}.${topic.name}`
+          )
+      )
+      .filter(
+        (topic, index, self) =>
+          index ===
+          self.findIndex(
+            t => `${this.origin}.${t.name}` === `${this.origin}.${topic.name}`
+          )
+      );
 
     if (topicsToCreate.length) {
       this.logger.log(
