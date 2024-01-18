@@ -1,18 +1,16 @@
 import { CompressionTypes } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 
-import { BridgeRepository } from "./@types/repositories/bridge";
-
 import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
 import { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
-
-import { Logger, LogLevel } from "./infra/logs/logger";
-
+import {
+  BridgeRepository,
+  CallbackOptionsProps
+} from "./@types/repositories/bridge";
 import { CallbackStorage } from "./infra/http/callback-storage";
-
+import { LogLevel, Logger } from "./infra/logs/logger";
 import { KafkaClient, KafkaMessaging } from "./infra/messaging";
-
 import { BaseValidator } from "./infra/validations/base";
 
 class Bridge implements BridgeRepository {
@@ -122,13 +120,13 @@ class Bridge implements BridgeRepository {
       };
     } finally {
       if (callback) {
-        if (callbackTopic) topic = callbackTopic;
+        const realCallbackTopic = callbackTopic ? callbackTopic : topic;
 
         await this.kafkaMessaging.producer.sendBatch({
           compression: CompressionTypes.GZIP,
           topicMessages: [
             {
-              topic: `${origin}.${topic}`,
+              topic: `${origin}.${realCallbackTopic}`,
               messages: [
                 {
                   value: JSON.stringify({
@@ -151,7 +149,7 @@ class Bridge implements BridgeRepository {
 
   private async validatePayload(
     topic: string,
-    payload: any
+    payload: Record<string, unknown>
   ): Promise<
     | {
         isValid: boolean;
@@ -182,7 +180,14 @@ class Bridge implements BridgeRepository {
     record.resolve(payload);
   }
 
-  public async dispatch<T, Y>(topic: string, payload: T): Promise<Response<Y>> {
+  public async dispatch<T, Y>(
+    topic: string,
+    payload: T,
+    callbackOptions: CallbackOptionsProps = {
+      callback: true,
+      callbackTopic: undefined
+    }
+  ): Promise<Response<Y>> {
     return new Promise((resolve, reject) => {
       try {
         const hash = uuidv4();
@@ -193,7 +198,8 @@ class Bridge implements BridgeRepository {
           hash,
           payload,
           origin: this.subscribedOrigin ?? this.origin,
-          callback: true
+          callback: callbackOptions.callback,
+          callbackTopic: callbackOptions.callbackTopic
         };
 
         this.kafkaMessaging.producer.sendBatch({
