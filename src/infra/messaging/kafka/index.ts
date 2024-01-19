@@ -16,7 +16,14 @@ class KafkaClient {
     const options: KafkaConfig = {
       clientId: this.clientId,
       brokers: this.brokers,
-      ssl: this.ssl ?? false
+      ssl: this.ssl ?? false,
+      retry: {
+        initialRetryTime: 100,
+        retries: Infinity,
+        maxRetryTime: 5000,
+        factor: 0.2,
+        multiplier: 2
+      }
     };
 
     if (this.sasl) options.sasl = this.sasl;
