@@ -192,8 +192,6 @@ class Bridge implements BridgeRepository {
       try {
         const hash = uuidv4();
 
-        this.callbackStorage.add<Y>(hash, resolve);
-
         const message: Request<T> = {
           hash,
           payload,
@@ -202,26 +200,38 @@ class Bridge implements BridgeRepository {
           callbackTopic: callbackOptions.callbackTopic
         };
 
-        this.kafkaMessaging.producer.sendBatch({
-          compression: CompressionTypes.GZIP,
-          topicMessages: [
-            {
-              topic,
-              messages: [{ value: JSON.stringify(message) }]
-            }
-          ]
-        });
+        this.kafkaMessaging.producer
+          .sendBatch({
+            compression: CompressionTypes.GZIP,
+            topicMessages: [
+              {
+                topic,
+                messages: [{ value: JSON.stringify(message) }]
+              }
+            ]
+          })
+          .then(() => {
+            if (callbackOptions.callback)
+              this.callbackStorage.add<Y>(hash, resolve);
+            else resolve({ success: true, message: "Message sent" });
 
-        const microservice = topic.split(".")[0];
-        const messageTopic = topic.split(".")[1];
+            const microservice = topic.split(".")[0];
+            const messageTopic = topic.split(".")[1];
 
-        this.logger.log(
-          `Sent message to ${microservice} on topic <${messageTopic}>`
-        );
-        this.logger.log(`Message: ${JSON.stringify(message)}`, LogLevel.DEBUG);
+            this.logger.log(
+              `Sent message to ${microservice} on topic <${messageTopic}>`
+            );
+            this.logger.log(
+              `Message: ${JSON.stringify(message)}`,
+              LogLevel.DEBUG
+            );
+          })
+          .catch(error => {
+            throw error;
+          });
       } catch (error) {
         this.logger.log(
-          `Error while sending message to ${topic}: ${
+          `Error sending message to ${topic}: ${
             (error as Error).message ?? String(error)
           }`
         );
