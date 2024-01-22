@@ -91,7 +91,7 @@ class Bridge implements BridgeRepository {
   }
 
   private async process(topic: string, message: Request): Promise<void> {
-    if (message.callback) await this.processRequest(topic, message);
+    if (message.request) await this.processRequest(topic, message);
     else this.processCallback(topic, message);
   }
 
@@ -133,6 +133,7 @@ class Bridge implements BridgeRepository {
                     hash,
                     payload: response,
                     origin: this.origin,
+                    request: false,
                     callback: false
                   })
                 }
@@ -196,6 +197,7 @@ class Bridge implements BridgeRepository {
           hash,
           payload,
           origin: this.subscribedOrigin ?? this.origin,
+          request: true,
           callback: callbackOptions.callback,
           callbackTopic: callbackOptions.callbackTopic
         };
