@@ -12,11 +12,11 @@ You can quickly add Bridge to your project using either npm or yarn. Choose the 
 
 - Using npm:
   ```
-  npm i douglasrubims/bridge#V0.2.1
+  npm i douglasrubims/bridge#V0.2.3
   ```
 - Using yarn:
   ```
-  yarn add douglasrubims/bridge#V0.2.1
+  yarn add douglasrubims/bridge#V0.2.3
   ```
 
 ### Quick Example
