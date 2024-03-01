@@ -1,4 +1,4 @@
-import { Kafka, Consumer, Producer } from "kafkajs";
+import { Consumer, Kafka, Producer } from "kafkajs";
 
 import { KafkaClient } from "./kafka";
 import { KafkaConsumer } from "./kafka/consumer";
@@ -63,6 +63,7 @@ class KafkaMessaging {
 
     const topicsToModify = topicsMetadata.topics.filter(topicMetadata => {
       const numPartitions = findTopic(topicMetadata.name)?.numPartitions;
+
       return numPartitions && topicMetadata.partitions.length < numPartitions;
     });
 
@@ -73,15 +74,26 @@ class KafkaMessaging {
           .join(", ")}`
       );
 
+      const topicPartitions = topicsToModify
+        .map(topicMetadata => {
+          const topic = findTopic(topicMetadata.name);
+
+          if (!topic) return;
+
+          return {
+            topic: topicMetadata.name,
+            count: topic.numPartitions - topicMetadata.partitions.length
+          };
+        })
+        .filter(Boolean) as {
+        topic: string;
+        count: number;
+      }[];
+
       await this.kafka.admin().createPartitions({
         validateOnly: false,
         timeout: 5000,
-        topicPartitions: topicsToModify.map(topicMetadata => ({
-          topic: topicMetadata.name,
-          count:
-            findTopic(topicMetadata.name)?.numPartitions! -
-            topicMetadata.partitions.length
-        }))
+        topicPartitions
       });
     }
 

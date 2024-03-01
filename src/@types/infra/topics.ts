@@ -1,14 +1,15 @@
+import { ValidationSchema } from "../../infra/validations/validation-schema";
 import { Response } from "./response";
 
 export interface SubscribedTopic {
   name: string;
-  numPartitions?: number;
+  numPartitions: number;
   separatedConsumer?: boolean;
 }
 
 export interface UseCaseTopic {
-  useCase: (payload: any) => Promise<Response>;
-  validation: any;
+  useCase: (payload: unknown) => Promise<Response>;
+  validation: ValidationSchema;
   numPartitions?: number;
   separatedConsumer?: boolean;
 }
