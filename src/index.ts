@@ -1,4 +1,4 @@
-import { CompressionTypes } from "kafkajs";
+import { CompressionTypes, KafkaConfig } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 
 import { Request } from "./@types/infra/request";
@@ -8,9 +8,9 @@ import {
   BridgeRepository,
   CallbackOptionsProps
 } from "./@types/repositories/bridge";
-import { CallbackStorage } from "./infra/http/callback-storage";
 import { LogLevel, Logger } from "./infra/logs/logger";
 import { KafkaClient, KafkaMessaging } from "./infra/messaging";
+import { CallbackStorage } from "./infra/storage/callback-storage";
 import { BaseValidator } from "./infra/validations/base";
 
 class Bridge implements BridgeRepository {
@@ -21,16 +21,7 @@ class Bridge implements BridgeRepository {
 
   constructor(
     private readonly origin: string,
-    private readonly kafkaConfig: {
-      clientId: string;
-      brokers: string[];
-      sasl?: {
-        mechanism: "scram-sha-512";
-        username: string;
-        password: string;
-      };
-      ssl?: boolean;
-    },
+    private readonly kafkaConfig: KafkaConfig,
     private readonly groupId: string,
     private readonly subscribedTopics: SubscribedTopic[],
     private readonly logLevel: LogLevel,
@@ -43,12 +34,7 @@ class Bridge implements BridgeRepository {
 
     this.logger.log("Initializing bridge...");
 
-    this.kafkaClient = new KafkaClient(
-      this.kafkaConfig.clientId,
-      this.kafkaConfig.brokers,
-      this.kafkaConfig.sasl,
-      this.kafkaConfig.ssl
-    );
+    this.kafkaClient = new KafkaClient(this.kafkaConfig);
 
     const kafka = this.kafkaClient.getInstance();
 

@@ -1,4 +1,4 @@
-import { Kafka, Consumer } from "kafkajs";
+import { Consumer, Kafka } from "kafkajs";
 
 class KafkaConsumer {
   private consumer: Consumer;
@@ -16,6 +16,7 @@ class KafkaConsumer {
 
   public async connect() {
     await this.consumer.connect();
+
     await this.consumer.subscribe({
       topics: this.topics,
       fromBeginning: false
