@@ -43,11 +43,9 @@ class KafkaMessaging {
     if (separatedConsumerTopics.length)
       for (let i = 0; i < separatedConsumerTopics.length; i++)
         this.kafkaConsumers.push(
-          new KafkaConsumer(
-            this.kafka,
-            `${this.groupId}-${separatedConsumerTopics[i].name}`,
-            [`${this.origin}.${separatedConsumerTopics[i].name}`]
-          )
+          new KafkaConsumer(this.kafka, this.groupId, [
+            `${this.origin}.${separatedConsumerTopics[i].name}`
+          ])
         );
   }
 
