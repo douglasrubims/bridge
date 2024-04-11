@@ -8,7 +8,7 @@ export interface SubscribedTopic {
 }
 
 export interface UseCaseTopic {
-  useCase: (payload: unknown) => Promise<Response>;
+  useCase: (payload: any) => Promise<Response>;
   validation: ValidationSchema;
   numPartitions?: number;
   separatedConsumer?: boolean;
