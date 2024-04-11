@@ -10,7 +10,12 @@ class KafkaConsumer {
   ) {
     this.consumer = this.kafka.consumer({
       groupId: this.groupId,
-      allowAutoTopicCreation: true
+      allowAutoTopicCreation: true,
+      sessionTimeout: 6000,
+      heartbeatInterval: 3000,
+      retry: {
+        retries: Infinity
+      }
     });
   }
 
