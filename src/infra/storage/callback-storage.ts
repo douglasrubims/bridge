@@ -1,4 +1,4 @@
-import { Response } from "../../@types/infra/response";
+import type { Response } from "../../@types/infra/response";
 
 export interface CallbackProps {
   hash: string;

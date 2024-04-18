@@ -1,21 +1,24 @@
-import { CompressionTypes, KafkaConfig } from "kafkajs";
+import type { RedisOptions } from "ioredis";
+import { CompressionTypes, type KafkaConfig } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 
 import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
-import { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
-import {
+import type { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
+import type {
   BridgeRepository,
   CallbackOptionsProps
 } from "./@types/repositories/bridge";
 import { LogLevel, Logger } from "./infra/logs/logger";
 import { KafkaClient, KafkaMessaging } from "./infra/messaging";
 import { CallbackStorage } from "./infra/storage/callback-storage";
+import { RedisCallbackStorage } from "./infra/storage/redis";
 import { BaseValidator } from "./infra/validations/base";
 
 class Bridge implements BridgeRepository {
   private kafkaClient: KafkaClient;
   private kafkaMessaging: KafkaMessaging;
+  private redisCallbackStorage?: RedisCallbackStorage;
   private callbackStorage = new CallbackStorage();
   private logger = Logger.getInstance();
 
@@ -27,7 +30,8 @@ class Bridge implements BridgeRepository {
     private readonly logLevel: LogLevel,
     private readonly useCaseTopics?: UseCaseTopics,
     private readonly subscribedOrigin?: string,
-    private readonly partitionsConsumedConcurrently = 1
+    private readonly partitionsConsumedConcurrently = 1,
+    private readonly redisOptions?: RedisOptions
   ) {
     this.logger.setOrigin(this.origin);
     this.logger.setLogLevel(this.logLevel);
@@ -44,6 +48,9 @@ class Bridge implements BridgeRepository {
       subscribedOrigin ?? origin,
       this.subscribedTopics
     );
+
+    if (this.redisOptions)
+      this.redisCallbackStorage = new RedisCallbackStorage(this.redisOptions);
   }
 
   public async connect(): Promise<void> {
@@ -78,7 +85,7 @@ class Bridge implements BridgeRepository {
 
   private async process(topic: string, message: Request): Promise<void> {
     if (message.request) await this.processRequest(topic, message);
-    else this.processCallback(topic, message);
+    else await this.processCallback(topic, message);
   }
 
   private async processRequest(topic: string, message: Request): Promise<void> {
@@ -153,16 +160,21 @@ class Bridge implements BridgeRepository {
     return await validator.validate(payload);
   }
 
-  private processCallback(topic: string, message: Request): void {
+  private async processCallback(
+    topic: string,
+    message: Request
+  ): Promise<void> {
     const { hash, payload, origin } = message;
 
-    const record = this.callbackStorage.get(hash);
+    const storage = this.redisCallbackStorage ?? this.callbackStorage;
+
+    const record = await storage.get(hash);
 
     if (!record) return;
 
     this.logger.log(`Received message from ${origin} on topic <${topic}>`);
 
-    this.callbackStorage.remove(hash);
+    storage.remove(hash);
 
     record.resolve(payload);
   }
@@ -200,7 +212,10 @@ class Bridge implements BridgeRepository {
           })
           .then(() => {
             if (callbackOptions.callback)
-              this.callbackStorage.add<Y>(hash, resolve);
+              (this.redisCallbackStorage ?? this.callbackStorage).add<Y>(
+                hash,
+                resolve
+              );
             else resolve({ success: true, message: "Message sent" });
 
             const microservice = topic.split(".")[0];
