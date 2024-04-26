@@ -1,10 +1,9 @@
-import type { RedisOptions } from "ioredis";
-import { CompressionTypes, type KafkaConfig } from "kafkajs";
+import { CompressionTypes } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 
+import type { BridgeOptions } from "./@types/infra/bridge";
 import { Request } from "./@types/infra/request";
 import { Response } from "./@types/infra/response";
-import type { SubscribedTopic, UseCaseTopics } from "./@types/infra/topics";
 import type {
   BridgeRepository,
   CallbackOptionsProps
@@ -22,35 +21,27 @@ class Bridge implements BridgeRepository {
   private callbackStorage = new CallbackStorage();
   private logger = Logger.getInstance();
 
-  constructor(
-    private readonly origin: string,
-    private readonly kafkaConfig: KafkaConfig,
-    private readonly groupId: string,
-    private readonly subscribedTopics: SubscribedTopic[],
-    private readonly logLevel: LogLevel,
-    private readonly useCaseTopics?: UseCaseTopics,
-    private readonly subscribedOrigin?: string,
-    private readonly partitionsConsumedConcurrently = 1,
-    private readonly redisOptions?: RedisOptions
-  ) {
-    this.logger.setOrigin(this.origin);
-    this.logger.setLogLevel(this.logLevel);
+  constructor(private readonly options: BridgeOptions) {
+    this.logger.setOrigin(this.options.origin);
+    this.logger.setLogLevel(this.options.logLevel);
 
     this.logger.log("Initializing bridge...");
 
-    this.kafkaClient = new KafkaClient(this.kafkaConfig);
+    this.kafkaClient = new KafkaClient(this.options.kafkaConfig);
 
     const kafka = this.kafkaClient.getInstance();
 
     this.kafkaMessaging = new KafkaMessaging(
       kafka,
-      this.groupId,
-      subscribedOrigin ?? origin,
-      this.subscribedTopics
+      this.options.groupId,
+      this.options.subscribedOrigin ?? this.options.origin,
+      this.options.subscribedTopics
     );
 
-    if (this.redisOptions)
-      this.redisCallbackStorage = new RedisCallbackStorage(this.redisOptions);
+    if (this.options.redisConfig)
+      this.redisCallbackStorage = new RedisCallbackStorage(
+        this.options.redisConfig
+      );
   }
 
   public async connect(): Promise<void> {
@@ -77,7 +68,8 @@ class Bridge implements BridgeRepository {
 
             await this.process(topic, JSON.parse(message.value.toString()));
           },
-          partitionsConsumedConcurrently: this.partitionsConsumedConcurrently
+          partitionsConsumedConcurrently:
+            this.options.partitionsConsumedConcurrently ?? 1
         })
       )
     );
@@ -89,7 +81,7 @@ class Bridge implements BridgeRepository {
   }
 
   private async processRequest(topic: string, message: Request): Promise<void> {
-    if (!this.useCaseTopics) return;
+    if (!this.options.useCaseTopics) return;
 
     const { hash, payload, origin, callback, callbackTopic } = message;
 
@@ -105,7 +97,7 @@ class Bridge implements BridgeRepository {
 
     try {
       if (validation?.isValid)
-        response = await this.useCaseTopics[topic].useCase(payload);
+        response = await this.options.useCaseTopics[topic].useCase(payload);
     } catch (error) {
       response = {
         success: false,
@@ -125,7 +117,7 @@ class Bridge implements BridgeRepository {
                   value: JSON.stringify({
                     hash,
                     payload: response,
-                    origin: this.origin,
+                    origin: this.options.origin,
                     request: false,
                     callback: false
                   })
@@ -151,9 +143,9 @@ class Bridge implements BridgeRepository {
       }
     | undefined
   > {
-    if (!this.useCaseTopics) return;
+    if (!this.options.useCaseTopics) return;
 
-    const { validation } = this.useCaseTopics[topic];
+    const { validation } = this.options.useCaseTopics[topic];
 
     const validator = new BaseValidator(validation);
 
@@ -194,7 +186,7 @@ class Bridge implements BridgeRepository {
         const message: Request<T> = {
           hash,
           payload,
-          origin: this.subscribedOrigin ?? this.origin,
+          origin: this.options.subscribedOrigin ?? this.options.origin,
           request: true,
           callback: callbackOptions.callback,
           callbackTopic: callbackOptions.callbackTopic

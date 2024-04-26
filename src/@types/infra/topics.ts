@@ -1,5 +1,5 @@
-import { ValidationSchema } from "../../infra/validations/validation-schema";
-import { Response } from "./response";
+import type { ValidationSchema } from "../../infra/validations/validation-schema";
+import type { Response } from "./response";
 
 export interface SubscribedTopic {
   name: string;

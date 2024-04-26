@@ -1,4 +1,4 @@
-import { Consumer, Kafka } from "kafkajs";
+import type { Consumer, Kafka } from "kafkajs";
 
 class KafkaConsumer {
   private consumer: Consumer;
@@ -12,7 +12,7 @@ class KafkaConsumer {
       groupId: this.groupId,
       allowAutoTopicCreation: true,
       retry: {
-        retries: Infinity
+        retries: Number.POSITIVE_INFINITY
       }
     });
   }

@@ -1,4 +1,4 @@
-import { Kafka, Producer } from "kafkajs";
+import type { Kafka, Producer } from "kafkajs";
 
 class KafkaProducer {
   private producer: Producer;

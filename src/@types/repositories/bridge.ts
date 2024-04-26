@@ -1,4 +1,4 @@
-import { Response } from "../infra/response";
+import type { Response } from "../infra/response";
 
 export interface CallbackOptionsProps {
   callback: boolean;
@@ -6,6 +6,7 @@ export interface CallbackOptionsProps {
 }
 
 export interface BridgeRepository {
+  connect(): Promise<void>;
   dispatch<T, Y>(
     topic: string,
     payload: T,

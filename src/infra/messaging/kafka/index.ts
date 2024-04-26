@@ -1,4 +1,4 @@
-import { Kafka, KafkaConfig } from "kafkajs";
+import { Kafka, type KafkaConfig } from "kafkajs";
 
 class KafkaClient {
   private kafka: Kafka;

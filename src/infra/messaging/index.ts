@@ -1,12 +1,10 @@
-import { Consumer, Kafka, Producer } from "kafkajs";
+import type { Consumer, Kafka, Producer } from "kafkajs";
 
+import type { SubscribedTopic } from "../../@types/infra/topics";
+import { Logger } from "../logs/logger";
 import { KafkaClient } from "./kafka";
 import { KafkaConsumer } from "./kafka/consumer";
 import { KafkaProducer } from "./kafka/producer";
-
-import { SubscribedTopic } from "../../@types/infra/topics";
-
-import { Logger } from "../logs/logger";
 
 class KafkaMessaging {
   private kafkaConsumers: KafkaConsumer[];
