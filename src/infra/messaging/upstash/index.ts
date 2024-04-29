@@ -23,41 +23,38 @@ class UpstashClient {
   }
 
   async syncTopics(): Promise<void> {
-    try {
-      const responseTopics = await this.api.get<KafkaTopicDetails[]>(
-        `/topics/${this.upstashConfig.clusterId}`
-      );
+    const responseTopics = await this.api.get<KafkaTopicDetails[]>(
+      `/topics/${this.upstashConfig.clusterId}`
+    );
 
-      const topics = responseTopics.data;
+    const topics = responseTopics.data;
 
-      const toAdd = this.subscribedTopics.filter(
-        subscribedTopic =>
-          !topics.find(
-            topic =>
-              topic.topic_name === `${this.origin}.${subscribedTopic.name}`
-          )
-      );
+    const toAdd = this.subscribedTopics.filter(
+      subscribedTopic =>
+        !topics.find(
+          topic => topic.topic_name === `${this.origin}.${subscribedTopic.name}`
+        )
+    );
 
-      this.logger.log(
-        `Creating topics: ${toAdd.map(topic => topic.name).join(", ")}`
-      );
+    if (toAdd.length === 0) return this.logger.log("No topics to create");
 
-      for (const topic of toAdd) {
-        await this.api.post("/topic", {
-          name: `${this.origin}.${topic.name}`,
-          partitions: topic.numPartitions,
-          retention_time: 604800000,
-          retention_size: 268435456,
-          max_message_size: 10485760,
-          cleanup_policy: "delete",
-          clusterId: this.upstashConfig.clusterId
-        });
-      }
+    this.logger.log(
+      `Creating topics: ${toAdd.map(topic => topic.name).join(", ")}`
+    );
 
-      this.logger.log("Topics created successfully");
-    } catch (error) {
-      this.logger.log((error as Error).message);
+    for (const topic of toAdd) {
+      await this.api.post("/topic", {
+        name: `${this.origin}.${topic.name}`,
+        partitions: topic.numPartitions,
+        retention_time: 604800000,
+        retention_size: 268435456,
+        max_message_size: 10485760,
+        cleanup_policy: "delete",
+        clusterId: this.upstashConfig.clusterId
+      });
     }
+
+    this.logger.log("Topics created successfully");
   }
 }
 
