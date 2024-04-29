@@ -10,6 +10,7 @@ import type {
 } from "./@types/repositories/bridge";
 import { LogLevel, Logger } from "./infra/logs/logger";
 import { KafkaClient, KafkaMessaging } from "./infra/messaging";
+import { UpstashClient } from "./infra/messaging/upstash";
 import { CallbackStorage } from "./infra/storage/callback-storage";
 import { RedisCallbackStorage } from "./infra/storage/redis";
 import { BaseValidator } from "./infra/validations/base";
@@ -47,7 +48,13 @@ class Bridge implements BridgeRepository {
   public async connect(): Promise<void> {
     this.logger.log("Syncing topics...");
 
-    await this.kafkaMessaging.syncTopics();
+    if (this.options.upstashConfig)
+      await new UpstashClient(
+        this.options.upstashConfig,
+        this.options.subscribedOrigin ?? this.options.origin,
+        this.options.subscribedTopics
+      ).syncTopics();
+    else await this.kafkaMessaging.syncTopics();
 
     this.logger.log("Connecting to Kafka...");
 

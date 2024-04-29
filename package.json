@@ -15,6 +15,7 @@
 	},
 	"dependencies": {
 		"@types/uuid": "^9.0.1",
+		"axios": "^1.6.8",
 		"ioredis": "^5.4.1",
 		"kafkajs": "^2.2.4",
 		"uuid": "^9.0.1"
