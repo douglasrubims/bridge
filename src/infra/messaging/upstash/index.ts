@@ -18,7 +18,7 @@ class UpstashClient {
   ) {
     this.api = axios.create({
       baseURL: "https://api.upstash.com/v2/kafka",
-      headers: { Authorization: `Bearer ${this.upstashConfig.token}` }
+      headers: { Authorization: this.upstashConfig.token }
     });
   }
 
