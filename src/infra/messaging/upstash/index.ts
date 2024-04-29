@@ -50,7 +50,7 @@ class UpstashClient {
         retention_size: 268435456,
         max_message_size: 10485760,
         cleanup_policy: "delete",
-        clusterId: this.upstashConfig.clusterId
+        cluster_id: this.upstashConfig.clusterId
       });
     }
 
