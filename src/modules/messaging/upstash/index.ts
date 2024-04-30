@@ -1,11 +1,11 @@
 import axios, { type AxiosInstance } from "axios";
 
-import type { SubscribedTopic } from "../../../@types/infra/topics";
+import type { SubscribedTopic } from "../../../@types/modules/messaging/kafka";
 import type {
   KafkaTopicDetails,
   UpstashConfig
-} from "../../../@types/infra/upstash";
-import { Logger } from "../../logs/logger";
+} from "../../../@types/modules/messaging/upstash";
+import { Logger } from "../../../shared/logs";
 
 class UpstashClient {
   private readonly api: AxiosInstance;

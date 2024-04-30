@@ -1,6 +1,6 @@
 import Redis, { type RedisOptions } from "ioredis";
 
-import type { Response } from "../../../@types/infra/response";
+import type { Response } from "../../../@types";
 import type { CallbackProps } from "../callback-storage";
 
 const CHUNK_SIZE = 900 * 1024; // 900KB

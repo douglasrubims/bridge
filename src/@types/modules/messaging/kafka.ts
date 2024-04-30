@@ -1,5 +1,10 @@
-import type { ValidationSchema } from "../../infra/validations/validation-schema";
-import type { Response } from "./response";
+import type { Response } from "../../";
+import type { ValidationSchema } from "../../../modules/validation/validation-schema";
+
+export interface CallbackOptionsProps {
+  callback: boolean;
+  callbackTopic?: string;
+}
 
 export interface SubscribedTopic {
   name: string;

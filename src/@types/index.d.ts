@@ -1,10 +1,10 @@
 import { Bridge } from "..";
 
-import { LogLevel } from "../infra/logs/logger";
+import { LogLevel } from "../shared/logs";
 
-import { Request } from "./infra/request";
-import { Response } from "./infra/response";
-import { UseCaseTopics } from "./infra/topics";
+import { Request } from ".";
+import { Response } from ".";
+import { UseCaseTopics } from "./modules/messaging/kafka";
 
 declare global {
   namespace Express {

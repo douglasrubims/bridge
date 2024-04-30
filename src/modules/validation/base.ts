@@ -1,4 +1,4 @@
-import { ValidationSchema } from "./validation-schema";
+import type { ValidationSchema } from "./validation-schema";
 
 export class BaseValidator {
   constructor(private readonly schema: ValidationSchema) {}
