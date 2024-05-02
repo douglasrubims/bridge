@@ -9,8 +9,7 @@
 		"strict": true,
 		"noImplicitAny": true,
 		"esModuleInterop": true,
-		"resolveJsonModule": true,
-		"skipLibCheck": true
+		"resolveJsonModule": true
 	},
 	"typeRoots": ["src/@types/index.d.ts"],
 	"exclude": ["node_modules", "build"],
