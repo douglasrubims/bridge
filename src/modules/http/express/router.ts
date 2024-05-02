@@ -15,8 +15,8 @@ class ExpressRouter {
   ) {
     this.expressRouter = Router();
 
-    this.expressMiddleware = new ExpressMiddleware(this.secretToken);
-    this.expressController = new ExpressController(this.useCaseTopics);
+    this.expressMiddleware = new ExpressMiddleware();
+    this.expressController = new ExpressController();
 
     this.initializeRoute();
   }
@@ -24,8 +24,8 @@ class ExpressRouter {
   private initializeRoute(): void {
     this.expressRouter.post(
       "/bridge",
-      this.expressMiddleware.verifyToken,
-      this.expressController.handleRequest
+      this.expressMiddleware.verifyToken(this.secretToken),
+      this.expressController.handleRequest(this.useCaseTopics)
     );
   }
 

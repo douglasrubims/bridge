@@ -5,40 +5,56 @@ import type {
   ExpressRequest
 } from "../../../@types";
 import type { UseCaseTopics } from "../../../@types/modules/messaging/express";
+import { LogLevel, Logger } from "../../../shared/logs";
 import { BaseValidator } from "../../validation/base";
 
 class ExpressController {
-  constructor(private readonly useCaseTopics: UseCaseTopics) {}
+  private logger = Logger.getInstance();
 
-  public async handleRequest(
-    req: Request<unknown, unknown, ExpressRequest>,
-    res: Response
-  ): Promise<Response> {
-    try {
-      const { topic, payload } = req.body;
+  public handleRequest(useCaseTopics: UseCaseTopics) {
+    return async (
+      req: Request<unknown, unknown, ExpressRequest>,
+      res: Response
+    ): Promise<Response> => {
+      try {
+        const { topic, payload } = req.body;
 
-      const useCaseTopic = this.useCaseTopics[topic];
+        this.logger.log(`Received request on topic: ${topic}`);
+        this.logger.log(
+          `Payload: ${JSON.stringify(payload, null, 2)}`,
+          LogLevel.DEBUG
+        );
 
-      const validator = new BaseValidator(useCaseTopic.validation);
+        const useCaseTopic = useCaseTopics[topic];
 
-      const validation = await validator.validate(payload);
+        const validator = new BaseValidator(useCaseTopic.validation);
 
-      let response: BridgeResponse = {
-        success: false,
-        message: "Invalid payload",
-        data: { errors: validation?.errors }
-      };
+        const validation = await validator.validate(payload);
 
-      if (validation.isValid) response = await useCaseTopic.useCase(payload);
+        let response: BridgeResponse = {
+          success: false,
+          message: "Invalid payload",
+          data: { errors: validation?.errors }
+        };
 
-      return res.json(response);
-    } catch (error) {
-      return res.status(400).json({
-        success: false,
-        message: "Internal server error",
-        data: error
-      });
-    }
+        if (validation.isValid) response = await useCaseTopic.useCase(payload);
+
+        this.logger.log(
+          `Response: ${JSON.stringify(response, null, 2)}`,
+          LogLevel.DEBUG
+        );
+
+        return res.json(response);
+      } catch (error) {
+        console.log(error);
+
+        return res.status(400).json({
+          success: false,
+          message: "Internal server error",
+          data: error
+        });
+      }
+    };
   }
 }
 
