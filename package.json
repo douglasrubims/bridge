@@ -16,7 +16,7 @@
 	"dependencies": {
 		"@types/uuid": "^9.0.1",
 		"axios": "^1.6.8",
-		"express": "^4.19.2",
+		"express": "^4.17.21",
 		"ioredis": "^5.4.1",
 		"jsonwebtoken": "^9.0.2",
 		"kafkajs": "^2.2.4",
