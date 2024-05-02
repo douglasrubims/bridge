@@ -7,11 +7,11 @@ class KafkaProducer {
     this.producer = this.kafka.producer();
   }
 
-  public async connect() {
+  public async connect(): Promise<void> {
     await this.producer.connect();
   }
 
-  public getInstance() {
+  public getInstance(): Producer {
     return this.producer;
   }
 }

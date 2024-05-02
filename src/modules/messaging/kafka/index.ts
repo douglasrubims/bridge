@@ -8,7 +8,7 @@ import {
 } from "kafkajs";
 import { v4 as uuidv4 } from "uuid";
 
-import type { Request, Response } from "../../../@types";
+import type { KafkaRequest, Response } from "../../../@types";
 import type {
   SubscribedTopic,
   UseCaseTopics
@@ -213,12 +213,15 @@ class KafkaMessaging {
     );
   }
 
-  private async process(topic: string, message: Request): Promise<void> {
+  private async process(topic: string, message: KafkaRequest): Promise<void> {
     if (message.request) await this.processRequest(topic, message);
     else await this.processCallback(topic, message);
   }
 
-  private async processRequest(topic: string, message: Request): Promise<void> {
+  private async processRequest(
+    topic: string,
+    message: KafkaRequest
+  ): Promise<void> {
     if (!this.useCaseTopics) return;
 
     const { hash, payload, origin, callback, callbackTopic } = message;
@@ -256,7 +259,7 @@ class KafkaMessaging {
                     hash,
                     payload: response,
                     origin: this.origin,
-                    request: false,
+                    Kafkarequest: false,
                     callback: false
                   })
                 }
@@ -266,7 +269,10 @@ class KafkaMessaging {
         });
 
         this.logger.log(`Sent message to ${origin} on topic <${topic}>`);
-        this.logger.log(`Message: ${JSON.stringify(response)}`, LogLevel.DEBUG);
+        this.logger.log(
+          `Message: ${JSON.stringify(response, null, 2)}`,
+          LogLevel.DEBUG
+        );
       }
     }
   }
@@ -292,7 +298,7 @@ class KafkaMessaging {
 
   private async processCallback(
     topic: string,
-    message: Request
+    message: KafkaRequest
   ): Promise<void> {
     const { hash, payload, origin } = message;
 
@@ -321,7 +327,7 @@ class KafkaMessaging {
       try {
         const hash = uuidv4();
 
-        const message: Request<T> = {
+        const message: KafkaRequest<T> = {
           hash,
           payload,
           origin: this.origin,
@@ -355,7 +361,7 @@ class KafkaMessaging {
               `Sent message to ${microservice} on topic <${messageTopic}>`
             );
             this.logger.log(
-              `Message: ${JSON.stringify(message)}`,
+              `Message: ${JSON.stringify(message, null, 2)}`,
               LogLevel.DEBUG
             );
           })

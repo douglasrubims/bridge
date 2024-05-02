@@ -11,15 +11,15 @@ class CallbackStorage {
   add<T>(
     hash: string,
     resolve: (value: Response<T> | PromiseLike<Response<T>>) => void
-  ) {
+  ): void {
     this.requests.push({ hash, resolve });
   }
 
-  get(hash: string) {
+  get(hash: string): CallbackProps | undefined {
     return this.requests.find(request => request.hash === hash);
   }
 
-  remove(hash: string) {
+  remove(hash: string): void {
     this.requests = this.requests.filter(request => request.hash !== hash);
   }
 }

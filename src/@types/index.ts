@@ -2,17 +2,25 @@ import type { RedisOptions } from "ioredis";
 import type { KafkaConfig } from "kafkajs";
 
 import type { LogLevel } from "../shared/logs";
-import type { SubscribedTopic, UseCaseTopics } from "./modules/messaging/kafka";
+import type { UseCaseTopics as ExpressUseCaseTopics } from "./modules/messaging/express";
+import type {
+  UseCaseTopics as KafkaUseCaseTopics,
+  SubscribedTopic
+} from "./modules/messaging/kafka";
 import type { UpstashConfig } from "./modules/messaging/upstash";
 
 export interface BridgeOptions {
   microserviceName: string;
   logLevel: LogLevel;
+  express?: {
+    secretToken: string;
+    useCaseTopics: ExpressUseCaseTopics;
+  };
   kafka?: {
     groupId: string;
     kafkaConfig: KafkaConfig;
     subscribedTopics: SubscribedTopic[];
-    useCaseTopics?: UseCaseTopics;
+    useCaseTopics?: KafkaUseCaseTopics;
     subscribedOrigin?: string;
     partitionsConsumedConcurrently?: number;
     redisConfig?: RedisOptions;
@@ -20,7 +28,12 @@ export interface BridgeOptions {
   };
 }
 
-export interface Request<T = any> {
+export interface ExpressRequest<T = any> {
+  topic: string;
+  payload: T;
+}
+
+export interface KafkaRequest<T = any> {
   hash: string;
   payload: T;
   origin: string;

@@ -17,7 +17,7 @@ class KafkaConsumer {
     });
   }
 
-  public async connect() {
+  public async connect(): Promise<void> {
     await this.consumer.connect();
 
     await this.consumer.subscribe({
@@ -26,7 +26,7 @@ class KafkaConsumer {
     });
   }
 
-  public getInstance() {
+  public getInstance(): Consumer {
     return this.consumer;
   }
 }
