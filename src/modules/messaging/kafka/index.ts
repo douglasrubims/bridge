@@ -14,12 +14,10 @@ import type {
   UseCaseTopics
 } from "../../../@types/modules/messaging/kafka";
 import type { CallbackOptionsProps } from "../../../@types/modules/messaging/kafka";
-import type { UpstashConfig } from "../../../@types/modules/messaging/upstash";
 import { LogLevel, Logger } from "../../../shared/logs";
 import { CallbackStorage } from "../../storage/callback-storage";
 import { RedisCallbackStorage } from "../../storage/redis";
 import { BaseValidator } from "../../validation/base";
-import { UpstashClient } from "../upstash";
 import { KafkaConsumer } from "./consumer";
 import { KafkaProducer } from "./producer";
 
@@ -38,8 +36,7 @@ class KafkaMessaging {
     private readonly subscribedTopics: SubscribedTopic[],
     private readonly useCaseTopics?: UseCaseTopics,
     private readonly partitionsConsumedConcurrently?: number,
-    private readonly redisOptions?: RedisOptions,
-    private readonly upstashConfig?: UpstashConfig
+    private readonly redisOptions?: RedisOptions
   ) {
     this.kafka = new Kafka(this.kafkaConfig);
 
@@ -78,93 +75,6 @@ class KafkaMessaging {
       this.redisCallbackStorage = new RedisCallbackStorage(this.redisOptions);
   }
 
-  private async syncTopics(): Promise<void> {
-    await this.kafka.admin().connect();
-
-    const topicsMetadata = await this.kafka.admin().fetchTopicMetadata();
-
-    const findTopic = (topicName: string) =>
-      this.subscribedTopics.find(
-        subscribedTopic => `${this.origin}${subscribedTopic.name}` === topicName
-      );
-
-    const topicsToModify = topicsMetadata.topics.filter(topicMetadata => {
-      const numPartitions = findTopic(topicMetadata.name)?.numPartitions;
-
-      return numPartitions && topicMetadata.partitions.length < numPartitions;
-    });
-
-    if (topicsToModify.length) {
-      this.logger.log(
-        `Modifying partitions for topics: ${topicsToModify
-          .map(topicMetadata => topicMetadata.name)
-          .join(", ")}`
-      );
-
-      const topicPartitions = topicsToModify
-        .map(topicMetadata => {
-          const topic = findTopic(topicMetadata.name);
-
-          if (!topic) return;
-
-          return {
-            topic: topicMetadata.name,
-            count: topic.numPartitions - topicMetadata.partitions.length
-          };
-        })
-        .filter(Boolean) as {
-        topic: string;
-        count: number;
-      }[];
-
-      await this.kafka.admin().createPartitions({
-        validateOnly: false,
-        timeout: 5000,
-        topicPartitions
-      });
-    }
-
-    const topicsToCreate = this.subscribedTopics
-      .filter(
-        topic =>
-          !topicsMetadata.topics.find(
-            topicMetadata =>
-              topicMetadata.name === `${this.origin}.${topic.name}`
-          )
-      )
-      .filter(
-        (topic, index, self) =>
-          index ===
-          self.findIndex(
-            t => `${this.origin}.${t.name}` === `${this.origin}.${topic.name}`
-          )
-      );
-
-    if (topicsToCreate.length) {
-      this.logger.log(
-        `Creating topics: ${topicsToCreate
-          .map(topic => `${this.origin}.${topic.name}`)
-          .join(", ")}`
-      );
-
-      await this.kafka.admin().createTopics({
-        topics: topicsToCreate.map(topic => ({
-          topic: `${this.origin}.${topic.name}`,
-          numPartitions: topic.numPartitions ?? -1,
-          replicationFactor: -1,
-          configEntries: [
-            {
-              name: "cleanup.policy",
-              value: "delete"
-            }
-          ]
-        }))
-      });
-    }
-
-    await this.kafka.admin().disconnect();
-  }
-
   private get consumers(): Consumer[] {
     return this.kafkaConsumers.map(consumer => consumer.getInstance());
   }
@@ -175,14 +85,6 @@ class KafkaMessaging {
 
   public async connect(): Promise<void> {
     this.logger.log("Syncing topics...");
-
-    if (this.upstashConfig)
-      await new UpstashClient(
-        this.upstashConfig,
-        this.origin,
-        this.subscribedTopics
-      ).syncTopics();
-    else await this.syncTopics();
 
     this.logger.log("Connecting to Kafka...");
 

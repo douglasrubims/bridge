@@ -35,8 +35,7 @@ class Bridge {
         kafka.subscribedTopics,
         kafka.useCaseTopics,
         kafka.partitionsConsumedConcurrently,
-        kafka.redisConfig,
-        kafka.upstashConfig
+        kafka.redisConfig
       );
   }
 

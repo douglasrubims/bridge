@@ -7,7 +7,6 @@ import type {
   UseCaseTopics as KafkaUseCaseTopics,
   SubscribedTopic
 } from "./modules/messaging/kafka";
-import type { UpstashConfig } from "./modules/messaging/upstash";
 
 export interface BridgeOptions {
   microserviceName: string;
@@ -24,7 +23,6 @@ export interface BridgeOptions {
     subscribedOrigin?: string;
     partitionsConsumedConcurrently?: number;
     redisConfig?: RedisOptions;
-    upstashConfig?: UpstashConfig;
   };
 }
 
