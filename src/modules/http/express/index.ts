@@ -36,7 +36,7 @@ class ExpressHandler {
     };
 
     this.logger.log(
-      `Requesting to ${topic}: ${JSON.stringify(request, null, 2)}`
+      `Requesting to ${hostUrl} on ${topic}: ${JSON.stringify(request)}`
     );
 
     const token = jwt.sign({}, this.secretToken, {

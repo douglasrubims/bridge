@@ -20,10 +20,7 @@ class ExpressController {
         const { topic, payload } = req.body;
 
         this.logger.log(`Received request on topic: ${topic}`);
-        this.logger.log(
-          `Payload: ${JSON.stringify(payload, null, 2)}`,
-          LogLevel.DEBUG
-        );
+        this.logger.log(`Payload: ${JSON.stringify(payload)}`, LogLevel.DEBUG);
 
         const useCaseTopic = useCaseTopics[topic];
 
@@ -40,7 +37,7 @@ class ExpressController {
         if (validation.isValid) response = await useCaseTopic.useCase(payload);
 
         this.logger.log(
-          `Response: ${JSON.stringify(response, null, 2)}`,
+          `Response: ${JSON.stringify(response)}`,
           LogLevel.DEBUG
         );
 

@@ -171,10 +171,7 @@ class KafkaMessaging {
         });
 
         this.logger.log(`Sent message to ${origin} on topic <${topic}>`);
-        this.logger.log(
-          `Message: ${JSON.stringify(response, null, 2)}`,
-          LogLevel.DEBUG
-        );
+        this.logger.log(`Message: ${JSON.stringify(response)}`, LogLevel.DEBUG);
       }
     }
   }
@@ -263,7 +260,7 @@ class KafkaMessaging {
               `Sent message to ${microservice} on topic <${messageTopic}>`
             );
             this.logger.log(
-              `Message: ${JSON.stringify(message, null, 2)}`,
+              `Message: ${JSON.stringify(message)}`,
               LogLevel.DEBUG
             );
           })
